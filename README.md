@@ -81,7 +81,7 @@ Or as a module from [jspm](https://jspm.io):
 ```html
 <script type="module">
   import MiniBuffer from 'https://dev.jspm.io/minibuffer';
-  console.log(new minibuffer());
+  console.log(new MiniBuffer());
 </script>
 ```
 

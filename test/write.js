@@ -60,7 +60,7 @@ describe('write: 16-bit BE', function() {
     var file = new Uint8Array([0, 0, 253, 2, 0, 0, 0, 0]);
 
     // Write a value to the buffer
-    var result = mb.write(file, BinaryDataTypes.uInt16BE, 65535);
+    mb.write(file, BinaryDataTypes.uInt16BE, 65535);
 
     // Tests
     it('should have the head set to 2', function() {
@@ -80,7 +80,7 @@ describe('write: 16-bit BE to index', function() {
     var file = new Uint8Array([255, 255, 0, 0, 0, 0, 0, 0]);
 
     // Write a value to the buffer
-    var result = mb.write(file, BinaryDataTypes.uInt16BE, 765, 2);
+    mb.write(file, BinaryDataTypes.uInt16BE, 765, 2);
 
     // Tests
     it('should have the head set to 4', function() {
@@ -88,5 +88,28 @@ describe('write: 16-bit BE to index', function() {
     });
     it('original buffer should have been written', function() {
         assert.deepEqual(file, new Uint8Array([255, 255, 2, 253, 0, 0, 0, 0]));
+    });
+});
+
+describe('write: 16-bit BE to index, 2 times', function() {
+
+    // Create a MiniBuffer
+    var mb = new MiniBuffer();
+
+    // Create a buffer
+    var file = new Uint8Array([255, 255, 0, 0, 0, 0, 0, 0]);
+
+    // Write a value to the buffer
+    mb.write(file, BinaryDataTypes.uInt16BE, 765, 2);
+
+    // Write another value to the buffer
+    mb.write(file, BinaryDataTypes.uInt16BE, 765);
+
+    // Tests
+    it('should have the head set to 6', function() {
+        assert.equal(mb.head, 6);
+    });
+    it('original buffer should have been written', function() {
+        assert.deepEqual(file, new Uint8Array([255, 255, 2, 253, 2, 253, 0, 0]));
     });
 });

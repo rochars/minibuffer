@@ -23,7 +23,7 @@
  */
 
 /**
- * @fileoverview Externs for minibuffer 0.0.1
+ * @fileoverview Externs for minibuffer 0.0.3
  *
  * @see https://github.com/rochars/minibuffer
  * @externs
@@ -32,7 +32,7 @@
 /**
  * A class to read and write to buffers.
  */
-var MiniBuffer = MiniBuffer || {};
+var MiniBuffer = {};
 
 // The types param
 var typeDefinition = {
@@ -56,7 +56,7 @@ MiniBuffer.head = 0;
 MiniBuffer.read = function(buffer, typeDefinition) {};
 
 /**
- * Read a number to a buffer.
+ * Write a number to a buffer.
  * @param {!Uint8Array} buffer The buffer.
  * @param {!Object} typeDefinition The type definition.
  * @param {number} num The number to write.

@@ -106,13 +106,29 @@ MiniBuffer.head = 0;
 MiniBuffer.read(buffer, typeDefinition) {}
 
 /**
- * Read a number to a buffer.
+ * Write a number to a buffer.
  * @param {!Uint8Array} buffer The buffer.
  * @param {!Object} typeDefinition The type definition.
  * @param {number} num The number to write.
  * @param {?number=} index The buffer index to write.
  */
 MiniBuffer.write(buffer, typeDefinition, num, index=null) {}
+```
+
+### Type definitions
+Types are user-defined objects like this:
+```javascript
+const float32 = {
+  bits: 32, // required
+  signed: true, // optional, defaults to false
+  float: true, // optional, defaults to false
+  be: false // optional, defaults to false, true for big-endian
+}
+```
+
+There is a standard set of types that can be installed:
+```
+npm install binary-data-types
 ```
 
 ## Distribution

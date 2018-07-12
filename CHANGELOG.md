@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## version 0.0.3 (2018-07-12)
+- Fix head on write()
+- Fix TypeScript definition file
+
 ## version 0.0.2 (2018-07-12)
 - Fix package.json "bin" field
 

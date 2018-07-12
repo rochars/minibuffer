@@ -790,7 +790,7 @@ class MiniBuffer {
   }
 
   /**
-   * Read a number to a buffer.
+   * Write a number to a buffer.
    * @param {!Uint8Array} buffer The buffer.
    * @param {!Object} typeDefinition The type definition.
    * @param {number} num The number to write.
@@ -800,7 +800,7 @@ class MiniBuffer {
     index = index === null ? this.head : index;
     /** @type {number} */
     let size = typeDefinition.bits / 8;
-    this.head += packTo(num, typeDefinition, buffer, index);
+    this.head = packTo(num, typeDefinition, buffer, index);
   }
 }
 

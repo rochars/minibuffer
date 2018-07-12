@@ -115,6 +115,22 @@ MiniBuffer.read(buffer, typeDefinition) {}
 MiniBuffer.write(buffer, typeDefinition, num, index=null) {}
 ```
 
+### Type definitions
+Types are user-defined objects like this:
+```javascript
+const float32 = {
+  bits: 32, // required
+  signed: true, // optional, defaults to false
+  float: true, // optional, defaults to false
+  be: false // optional, defaults to false, true for big-endian
+}
+```
+
+There is a standard set of types that can be installed:
+```
+npm install binary-data-types
+```
+
 ## Distribution
 This library is a ES module also distributed as a CommonJS module, UMD module and a compiled script for browsers. It works out of the box in Node when installed with ```npm install minibuffer```. It includes a [TypeScript](https://www.typescriptlang.org/) definition file.
 

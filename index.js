@@ -61,7 +61,7 @@ export default class MiniBuffer {
     }
     /** @type {number} */
     let num = unpackFrom(buffer, typeDefinition, index);
-    this.head += size + index;
+    this.head = size + index;
     return num;
   }
 

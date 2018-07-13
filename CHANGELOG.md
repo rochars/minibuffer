@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## version 0.1.2 (2018-07-12)
+- Fix head on read()
+
 ## version 0.1.1 (2018-07-12)
 - Remove unecessary dependencies from package.json
 

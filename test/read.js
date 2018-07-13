@@ -80,6 +80,32 @@ describe('read: 16-bit LE with index + word size == buffer.length - word size',
         assert.deepEqual(file, new Uint8Array([255, 255, 1, 1, 0, 0, 253, 2]));
     });
 });
+describe('read: 16-bit LE 2x', function() {
+
+    // Create a MiniBuffer
+    var mb = new MiniBuffer();
+
+    // Create a buffer
+    var file = new Uint8Array([255, 255, 253, 2, 0, 0, 0, 0]);
+
+    // Read a value from the buffer
+    var result = mb.read(file, BinaryDataTypes.uInt16);
+    var result2 = mb.read(file, BinaryDataTypes.uInt16);
+
+    // Tests
+    it('should read the first value in the buffer', function() {
+        assert.equal(result, 65535);
+    });
+    it('should read the second value in the buffer', function() {
+        assert.equal(result2, 765);
+    });
+    it('should have the head set to 4', function() {
+        assert.equal(mb.head, 4);
+    });
+    it('should have kept the original buffer untouched', function() {
+        assert.deepEqual(file, new Uint8Array([255, 255, 253, 2, 0, 0, 0, 0]));
+    });
+});
 
 // Little endian errors
 describe('read: 16-bit LE with index + word size > buffer.length - word size',

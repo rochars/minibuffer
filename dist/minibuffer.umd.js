@@ -931,7 +931,7 @@
         }
         /** @type {number} */
         var num = unpackFrom(buffer, typeDefinition, index);
-        this.head += size + index;
+        this.head = size + index;
         return num;
       }
 

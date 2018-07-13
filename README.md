@@ -11,7 +11,7 @@ A minimalist buffer reader and writer.
 - **Use it out of the box in the browser**
 - **Use it out of the box in Node**
 - **Use it out of the box with [TypeScript](https://www.typescriptlang.org/)**
-- **Less than 3kb minified + compressed, less than 6kb minified**
+- **Less than 2kb minified + compressed, less than 5kb minified**
 - Made with **[Closure Compiler](https://github.com/google/closure-compiler)** in mind (works great with others, too)
 
 ## Install
@@ -113,6 +113,27 @@ MiniBuffer.read(buffer, typeDefinition) {}
  * @param {?number=} index The buffer index to write.
  */
 MiniBuffer.write(buffer, typeDefinition, num, index=null) {}
+
+/**
+ * Write a ASCII string to a buffer. If the string is smaller
+ * than the max size the output buffer is filled with 0s.
+ * @param {!Uint8Array} buffer The buffer.
+ * @param {string} str The string to be written as bytes.
+ * @param {number=} size The size of the string.
+ * @param {?number=} index The buffer index to write.
+ * @throws {Error} If size + index > buffer.length
+ */
+MiniBuffer.writeStr(buffer, str, size=str.length, index=null) {}
+
+/**
+ * Read a ASCII string from a buffer.
+ * @param {!Uint8Array} buffer The buffer.
+ * @param {number} size the max size of the string.
+ * @param {?number=} index The buffer index to read.
+ * @return {string} The string.
+ * @throws {Error} If size + index > buffer.length
+ */
+MiniBuffer.readStr(buffer, size, index=null) {}
 ```
 
 ### Type definitions

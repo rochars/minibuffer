@@ -1,6 +1,6 @@
 {
   "name": "minibuffer",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "A minimalist buffer reader and writer.",
   "homepage": "https://github.com/rochars/minibuffer",
   "author": "Rafael da Silva Rocha <rocha.rafaelsilva@gmail.com>",
@@ -83,6 +83,8 @@
     "rollup-plugin-node-resolve": "^3.3.0"
   },
   "dependencies": {
-    "byte-data": "^13.2.5"
+    "byte-data": "^13.2.5",
+    "rollup-plugin-terser": "^1.0.1",
+    "terser": "^3.7.8"
   }
 }

@@ -421,6 +421,22 @@
    */
 
   /**
+   * @fileoverview Functions to validate input.
+   * @see https://github.com/rochars/byte-data
+   */
+
+  /**
+   * Validate that the code is a valid ASCII code.
+   * @param {number} code The code.
+   * @throws {Error} If the code is not a valid ASCII code.
+   */
+  function validateASCIICode(code) {
+    if (code > 127) {
+      throw new Error('Bad ASCII code.');
+    }
+  }
+
+  /**
    * Validate that the value is not null or undefined.
    * @param {number} value The value.
    * @throws {Error} If the value is of type undefined.
@@ -769,6 +785,49 @@
    *
    */
 
+  // ASCII characters
+  /**
+   * Read a string of ASCII characters from a byte buffer.
+   * @param {!Uint8Array} bytes A byte buffer.
+   * @param {number=} index The index to read.
+   * @param {?number=} len The number of bytes to read.
+   * @return {string}
+   * @throws {Error} If a character in the string is not valid ASCII.
+   */
+  function unpackString(bytes) {
+    var index = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+    var len = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
+    var chrs = '';
+    len = len ? index + len : bytes.length;
+    while (index < len) {
+      validateASCIICode(bytes[index]);
+      chrs += String.fromCharCode(bytes[index]);
+      index++;
+    }
+    return chrs;
+  }
+
+  /**
+   * Write a string of ASCII characters to a byte buffer.
+   * @param {string} str The string to pack.
+   * @param {!Uint8Array|!Array<number>} buffer The output buffer.
+   * @param {number=} index The index to write in the buffer.
+   * @return {number} The next index to write in the buffer.
+   * @throws {Error} If a character in the string is not valid ASCII.
+   */
+  function packStringTo(str, buffer) {
+    var index = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+
+    for (var i = 0; i < str.length; i++) {
+      var code = str.charCodeAt(i);
+      validateASCIICode(code);
+      buffer[index] = code;
+      index++;
+    }
+    return index;
+  }
+
   /**
    * Pack a number to a byte buffer.
    * @param {number} value The value.
@@ -832,6 +891,8 @@
    *
    */
 
+  var RANGE_EROR = "RangeError: Source is too large";
+
   /**
    * A class to read and write to buffers.
    */
@@ -886,6 +947,63 @@
         /** @type {number} */
         var size = typeDefinition.bits / 8;
         this.head = packTo(num, typeDefinition, buffer, index);
+      }
+
+      /**
+       * Read a ASCII string from a buffer.
+       * @param {!Uint8Array} buffer The buffer.
+       * @param {number} size the max size of the string.
+       * @param {?number=} index The buffer index to read.
+       * @return {string} The string.
+       * @throws {Error} If size + index > buffer.length
+       */
+
+    }, {
+      key: 'readStr',
+      value: function readStr(buffer, size) {
+        var index = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
+        this.head = index === null ? this.head : index;
+        size = this.head + size;
+        if (size > buffer.length) {
+          throw new Error(RANGE_EROR);
+        }
+        /** @type {string} */
+        var str = '';
+        for (; this.head < size; this.head++) {
+          str += unpackString(buffer, this.head, 1);
+        }
+        return str;
+      }
+
+      /**
+       * Write a ASCII string to a buffer. If the string is smaller
+       * than the max size the output buffer is filled with 0s.
+       * @param {!Uint8Array} buffer The buffer.
+       * @param {string} str The string to be written as bytes.
+       * @param {number=} size The size of the string.
+       * @param {?number=} index The buffer index to write.
+       * @throws {Error} If size + index > buffer.length
+       */
+
+    }, {
+      key: 'writeStr',
+      value: function writeStr(buffer, str) {
+        var size = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : str.length;
+        var index = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+
+        index = index === null ? this.head : index;
+        /** @type {number} */
+        var limit = index + size;
+        if (limit > buffer.length) {
+          throw new Error(RANGE_EROR);
+        }
+        this.head = packStringTo(str, buffer, index);
+        if (this.head < index + size) {
+          for (; this.head < limit; this.head++) {
+            buffer[this.head] = 0;
+          }
+        }
       }
     }]);
     return MiniBuffer;

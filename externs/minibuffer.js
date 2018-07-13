@@ -23,7 +23,7 @@
  */
 
 /**
- * @fileoverview Externs for minibuffer 0.0.3
+ * @fileoverview Externs for minibuffer 0.1.0
  *
  * @see https://github.com/rochars/minibuffer
  * @externs
@@ -63,3 +63,24 @@ MiniBuffer.read = function(buffer, typeDefinition) {};
  * @param {?number=} index The buffer index to write.
  */
 MiniBuffer.write = function(buffer, typeDefinition, num, index=null) {};
+
+/**
+ * Write a ASCII string to a buffer. If the string is smaller
+ * than the max size the output buffer is filled with 0s.
+ * @param {!Uint8Array} buffer The buffer.
+ * @param {string} str The string to be written as bytes.
+ * @param {number=} size The size of the string.
+ * @param {?number=} index The buffer index to write.
+ * @throws {Error} If size + index > buffer.length
+ */
+MiniBuffer.writeStr = function(buffer, str, size=str.length, index=null) {};
+
+/**
+ * Read a ASCII string from a buffer.
+ * @param {!Uint8Array} buffer The buffer.
+ * @param {number} size the max size of the string.
+ * @param {?number=} index The buffer index to read.
+ * @return {string} The string.
+ * @throws {Error} If size + index > buffer.length
+ */
+MiniBuffer.readStr = function(buffer, size, index=null) {};

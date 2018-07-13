@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## version 0.1.0 (2018-07-12)
+- Add writeStr() to write ASCII strings to buffers
+- Add readStr() to read ASCII strings from buffers
+
 ## version 0.0.3 (2018-07-12)
 - Fix head on write()
 - Fix TypeScript definition file

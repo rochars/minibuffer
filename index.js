@@ -29,6 +29,8 @@
 
 import {unpackFrom, packTo, unpackString, packStringTo} from 'byte-data';
 
+const RANGE_EROR = "RangeError: Source is too large";
+
 /**
  * A class to read and write to buffers.
  */
@@ -70,5 +72,51 @@ export default class MiniBuffer {
     /** @type {number} */
     let size = typeDefinition.bits / 8;
     this.head = packTo(num, typeDefinition, buffer, index);
+  }
+
+  /**
+   * Read a ASCII string from a buffer.
+   * @param {!Uint8Array} buffer The buffer.
+   * @param {number} size the max size of the string.
+   * @param {?number=} index The buffer index to read.
+   * @return {string} The string.
+   * @throws {Error} If size + index > buffer.length
+   */
+  readStr(buffer, size, index=null) {
+    this.head = index === null ? this.head : index;
+    size = this.head + size;
+    if (size > buffer.length) {
+      throw new Error(RANGE_EROR);
+    }
+    /** @type {string} */
+    let str = '';
+    for (; this.head<size; this.head++) {
+      str += unpackString(buffer, this.head, 1);
+    }
+    return str;
+  }
+
+  /**
+   * Write a ASCII string to a buffer. If the string is smaller
+   * than the max size the output buffer is filled with 0s.
+   * @param {!Uint8Array} buffer The buffer.
+   * @param {string} str The string to be written as bytes.
+   * @param {number=} size The size of the string.
+   * @param {?number=} index The buffer index to write.
+   * @throws {Error} If size + index > buffer.length
+   */
+  writeStr(buffer, str, size=str.length, index=null) {
+    index = index === null ? this.head : index;
+    /** @type {number} */
+    let limit = index + size;
+    if (limit > buffer.length) {
+      throw new Error(RANGE_EROR);
+    }
+    this.head = packStringTo(str, buffer, index);
+    if (this.head < index + size) {
+      for (; this.head<limit; this.head++) {
+        buffer[this.head] = 0;
+      }
+    }
   }
 }

@@ -344,6 +344,22 @@ class Integer {
  */
 
 /**
+ * @fileoverview Functions to validate input.
+ * @see https://github.com/rochars/byte-data
+ */
+
+/**
+ * Validate that the code is a valid ASCII code.
+ * @param {number} code The code.
+ * @throws {Error} If the code is not a valid ASCII code.
+ */
+function validateASCIICode(code) {
+  if (code > 127) {
+    throw new Error ('Bad ASCII code.');
+  }
+}
+
+/**
  * Validate that the value is not null or undefined.
  * @param {number} value The value.
  * @throws {Error} If the value is of type undefined.
@@ -695,6 +711,44 @@ function setWriter(theType) {
  *
  */
 
+// ASCII characters
+/**
+ * Read a string of ASCII characters from a byte buffer.
+ * @param {!Uint8Array} bytes A byte buffer.
+ * @param {number=} index The index to read.
+ * @param {?number=} len The number of bytes to read.
+ * @return {string}
+ * @throws {Error} If a character in the string is not valid ASCII.
+ */
+function unpackString(bytes, index=0, len=null) {
+  let chrs = '';
+  len = len ? index + len : bytes.length;
+  while (index < len) {
+    validateASCIICode(bytes[index]);
+    chrs += String.fromCharCode(bytes[index]);
+    index++;
+  }
+  return chrs;
+}
+
+/**
+ * Write a string of ASCII characters to a byte buffer.
+ * @param {string} str The string to pack.
+ * @param {!Uint8Array|!Array<number>} buffer The output buffer.
+ * @param {number=} index The index to write in the buffer.
+ * @return {number} The next index to write in the buffer.
+ * @throws {Error} If a character in the string is not valid ASCII.
+ */
+function packStringTo(str, buffer, index=0) {
+  for (let i = 0; i < str.length; i++) {
+    let code = str.charCodeAt(i);
+    validateASCIICode(code);
+    buffer[index] = code;
+    index++;
+  }
+  return index;
+}
+
 /**
  * Pack a number to a byte buffer.
  * @param {number} value The value.
@@ -760,6 +814,8 @@ function unpackFrom(buffer, theType, index=0) {
  *
  */
 
+const RANGE_EROR = "RangeError: Source is too large";
+
 /**
  * A class to read and write to buffers.
  */
@@ -801,6 +857,52 @@ class MiniBuffer {
     /** @type {number} */
     let size = typeDefinition.bits / 8;
     this.head = packTo(num, typeDefinition, buffer, index);
+  }
+
+  /**
+   * Read a ASCII string from a buffer.
+   * @param {!Uint8Array} buffer The buffer.
+   * @param {number} size the max size of the string.
+   * @param {?number=} index The buffer index to read.
+   * @return {string} The string.
+   * @throws {Error} If size + index > buffer.length
+   */
+  readStr(buffer, size, index=null) {
+    this.head = index === null ? this.head : index;
+    size = this.head + size;
+    if (size > buffer.length) {
+      throw new Error(RANGE_EROR);
+    }
+    /** @type {string} */
+    let str = '';
+    for (; this.head<size; this.head++) {
+      str += unpackString(buffer, this.head, 1);
+    }
+    return str;
+  }
+
+  /**
+   * Write a ASCII string to a buffer. If the string is smaller
+   * than the max size the output buffer is filled with 0s.
+   * @param {!Uint8Array} buffer The buffer.
+   * @param {string} str The string to be written as bytes.
+   * @param {number=} size The size of the string.
+   * @param {?number=} index The buffer index to write.
+   * @throws {Error} If size + index > buffer.length
+   */
+  writeStr(buffer, str, size=str.length, index=null) {
+    index = index === null ? this.head : index;
+    /** @type {number} */
+    let limit = index + size;
+    if (limit > buffer.length) {
+      throw new Error(RANGE_EROR);
+    }
+    this.head = packStringTo(str, buffer, index);
+    if (this.head < index + size) {
+      for (; this.head<limit; this.head++) {
+        buffer[this.head] = 0;
+      }
+    }
   }
 }
 

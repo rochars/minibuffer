@@ -147,6 +147,9 @@ describe('writeStr() with invalid length', function() {
     it('original buffer should be untouched', function() {
         assert.deepEqual(file, new Uint8Array([0, 0, 253, 2, 0, 0, 0, 0]));
     });
+    it('head should be where it was before the error', function() {
+        assert.equal(mb.head, 0);
+    });
 });
 describe('writeStr() with invalid size param', function() {
 
@@ -165,6 +168,9 @@ describe('writeStr() with invalid size param', function() {
     it('original buffer should be untouched', function() {
         assert.deepEqual(file, new Uint8Array([0, 0, 253, 2, 0, 0, 0, 0]));
     });
+    it('head should be where it was before the error', function() {
+        assert.equal(mb.head, 0);
+    });
 });
 describe('writeStr() with size and invalid index', function() {
 
@@ -182,5 +188,8 @@ describe('writeStr() with size and invalid index', function() {
     });
     it('original buffer should be untouched', function() {
         assert.deepEqual(file, new Uint8Array([0, 0, 253, 2, 0, 0, 0, 0]));
+    });
+    it('head should be where it was before the error', function() {
+        assert.equal(mb.head, 0);
     });
 });

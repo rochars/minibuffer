@@ -1,6 +1,6 @@
 {
   "name": "minibuffer",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A minimalist buffer reader and writer.",
   "homepage": "https://github.com/rochars/minibuffer",
   "author": "Rafael da Silva Rocha <rocha.rafaelsilva@gmail.com>",

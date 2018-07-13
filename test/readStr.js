@@ -122,6 +122,9 @@ describe('readStr() with invalid size', function() {
     it('original buffer should be untouched', function() {
         assert.deepEqual(file, new Uint8Array([97, 97, 98, 2, 0, 0, 0, 0]));
     });
+    it('head should be where it was before the error', function() {
+        assert.equal(mb.head, 0);
+    });
 });
 describe('readStr() with size + index', function() {
 
@@ -140,5 +143,8 @@ describe('readStr() with size + index', function() {
     });
     it('original buffer should be untouched', function() {
         assert.deepEqual(file, new Uint8Array([97, 97, 98, 2, 0, 0, 0, 0]));
+    });
+    it('head should be where it was before the error', function() {
+        assert.equal(mb.head, 0);
     });
 });

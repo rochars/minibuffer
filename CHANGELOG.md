@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## version 0.1.3 (2018-07-13)
+- Only change the head position if no errors are throw
+
 ## version 0.1.2 (2018-07-12)
 - Fix head on read()
 

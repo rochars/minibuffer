@@ -89,6 +89,9 @@ describe('write: 16-bit LE to index > buffer.length - word size', function() {
     it('original buffer should be untouched', function() {
         assert.deepEqual(file, new Uint8Array([255, 255, 0, 0, 0, 0, 0, 0]));
     });
+    it('head should be where it was before the error', function() {
+        assert.equal(mb.head, 0);
+    });
 });
 
 // Big endian

@@ -127,6 +127,9 @@ describe('read: 16-bit LE with index + word size > buffer.length - word size',
     it('should have kept the original buffer untouched', function() {
         assert.deepEqual(file, new Uint8Array([255, 255, 1, 1, 0, 0, 253, 2]));
     });
+    it('head should be where it was before the error', function() {
+        assert.equal(mb.head, 0);
+    });
 });
 
 // Big endian

@@ -27,6 +27,8 @@
  * @see https://github.com/rochars/minibuffer
  */
 
+/** @module minibuffer */
+
 import {unpackFrom, packTo, unpackString, packStringTo} from 'byte-data';
 
 /** @type {string} */
@@ -92,16 +94,17 @@ export default class MiniBuffer {
    * @throws {Error} If size + index > buffer.length
    */
   readStr(buffer, size, index=null) {
-    this.head = index === null ? this.head : index;
-    size = this.head + size;
+    index = index === null ? this.head : index;
+    size = index + size;
     if (size > buffer.length) {
       throw new Error(RANGE_EROR);
     }
     /** @type {string} */
     let str = '';
-    for (; this.head<size; this.head++) {
-      str += unpackString(buffer, this.head, 1);
+    for (; index<size; index++) {
+      str += unpackString(buffer, index, 1);
     }
+    this.head = index;
     return str;
   }
 

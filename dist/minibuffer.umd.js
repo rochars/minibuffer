@@ -913,6 +913,7 @@
      * @param {!Object} typeDefinition The type definition.
      * @param {?number=} index The index to read.
      * @return {number} The number.
+     * @throws {Error} If word size + index > buffer.length
      */
 
 
@@ -924,6 +925,9 @@
         index = index === null ? this.head : index;
         /** @type {number} */
         var size = typeDefinition.bits / 8;
+        if (index + size > buffer.length) {
+          throw new Error(RANGE_EROR);
+        }
         /** @type {number} */
         var num = unpackFrom(buffer, typeDefinition, index);
         this.head += size + index;
@@ -936,6 +940,7 @@
        * @param {!Object} typeDefinition The type definition.
        * @param {number} num The number to write.
        * @param {?number=} index The buffer index to write.
+       * @throws {Error} If word size + index > buffer.length
        */
 
     }, {
@@ -946,6 +951,9 @@
         index = index === null ? this.head : index;
         /** @type {number} */
         var size = typeDefinition.bits / 8;
+        if (index + size > buffer.length) {
+          throw new Error(RANGE_EROR);
+        }
         this.head = packTo(num, typeDefinition, buffer, index);
       }
 

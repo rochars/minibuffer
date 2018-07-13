@@ -113,7 +113,7 @@ describe('readStr() with invalid size', function() {
     var file = new Uint8Array([97, 97, 98, 2, 0, 0, 0, 0]);
 
     // Tests
-    it('original buffer should be untouched', function() {
+    it('throws error on invalid size', function() {
         assert.throws(function() {
             // Read a value from the buffer
             console.log(mb.readStr(file, 10));
@@ -132,7 +132,7 @@ describe('readStr() with size + index', function() {
     var file = new Uint8Array([97, 97, 98, 2, 0, 0, 0, 0]);
 
     // Tests
-    it('original buffer should be untouched', function() {
+    it('throws error on invalid size + index', function() {
         assert.throws(function() {
             // Read a value from the buffer
             var result = mb.readStr(file, 3, 6);

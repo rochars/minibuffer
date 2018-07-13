@@ -130,7 +130,7 @@ describe('writeStr() with size + index == buffer.length', function() {
 });
 
 // Errors
-describe('writeStr() with invalid size', function() {
+describe('writeStr() with invalid length', function() {
 
     // Create a MiniBuffer
     var mb = new MiniBuffer();
@@ -139,7 +139,7 @@ describe('writeStr() with invalid size', function() {
     var file = new Uint8Array([0, 0, 253, 2, 0, 0, 0, 0]);
     
     // Tests
-    it('original buffer should be untouched', function() {
+    it('throws error on invalid length', function() {
         assert.throws(function() {
             mb.writeStr(file, 'aaaaaaaaa');
         }, RANGE_EROR);
@@ -157,7 +157,7 @@ describe('writeStr() with invalid size param', function() {
     var file = new Uint8Array([0, 0, 253, 2, 0, 0, 0, 0]);
     
     // Tests
-    it('original buffer should be untouched', function() {
+    it('throws error on invalid size', function() {
         assert.throws(function() {
             mb.writeStr(file, 'aa', 9);
         }, RANGE_EROR);
@@ -175,7 +175,7 @@ describe('writeStr() with size and invalid index', function() {
     var file = new Uint8Array([0, 0, 253, 2, 0, 0, 0, 0]);
 
     // Tests
-    it('original buffer should be untouched', function() {
+    it('throws error with invalid size + index', function() {
         assert.throws(function() {
           mb.writeStr(file, 'aa', 3, 6);
         }, RANGE_EROR);

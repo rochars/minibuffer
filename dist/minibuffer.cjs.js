@@ -836,11 +836,15 @@ class MiniBuffer {
    * @param {!Object} typeDefinition The type definition.
    * @param {?number=} index The index to read.
    * @return {number} The number.
+   * @throws {Error} If word size + index > buffer.length
    */
   read(buffer, typeDefinition, index=null) {
     index = index === null ? this.head : index;
     /** @type {number} */
     let size = typeDefinition.bits / 8;
+    if (index + size > buffer.length) {
+      throw new Error(RANGE_EROR);
+    }
     /** @type {number} */
     let num = unpackFrom(buffer, typeDefinition, index);
     this.head += size + index;
@@ -853,11 +857,15 @@ class MiniBuffer {
    * @param {!Object} typeDefinition The type definition.
    * @param {number} num The number to write.
    * @param {?number=} index The buffer index to write.
+   * @throws {Error} If word size + index > buffer.length
    */
   write(buffer, typeDefinition, num, index=null) {
     index = index === null ? this.head : index;
     /** @type {number} */
     let size = typeDefinition.bits / 8;
+    if (index + size > buffer.length) {
+      throw new Error(RANGE_EROR);
+    }
     this.head = packTo(num, typeDefinition, buffer, index);
   }
 

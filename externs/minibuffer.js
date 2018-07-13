@@ -51,9 +51,11 @@ MiniBuffer.head = 0;
  * Read a number from a buffer.
  * @param {!Uint8Array} buffer The bufefr.
  * @param {!Object} typeDefinition The type definition.
+ * @param {?number=} index The index to read.
  * @return {number} The number.
+ * @throws {Error} If word size + index > buffer.length
  */
-MiniBuffer.read = function(buffer, typeDefinition) {};
+MiniBuffer.read = function(buffer, typeDefinition, index=null) {};
 
 /**
  * Write a number to a buffer.
@@ -61,6 +63,7 @@ MiniBuffer.read = function(buffer, typeDefinition) {};
  * @param {!Object} typeDefinition The type definition.
  * @param {number} num The number to write.
  * @param {?number=} index The buffer index to write.
+ * @throws {Error} If word size + index > buffer.length
  */
 MiniBuffer.write = function(buffer, typeDefinition, num, index=null) {};
 

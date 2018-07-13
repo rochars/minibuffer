@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## version 0.1.1 (2018-07-12)
+- Remove unecessary dependencies from package.json
+
 ## version 0.1.0 (2018-07-12)
 - Add writeStr() to write ASCII strings to buffers
 - Add readStr() to read ASCII strings from buffers

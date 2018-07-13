@@ -23,7 +23,7 @@
  */
 
 /**
- * @fileoverview Externs for minibuffer 0.1.0
+ * @fileoverview Externs for minibuffer 0.1
  *
  * @see https://github.com/rochars/minibuffer
  * @externs

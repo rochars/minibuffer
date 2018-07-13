@@ -1,4 +1,4 @@
-// Type definitions for minibuffer 0.1.0
+// Type definitions for minibuffer 0.1
 // Project: https://github.com/rochars/minibuffer
 // Definitions by: Rafael da Silva Rocha <https://github.com/rochars>
 // Definitions: https://github.com/rochars/minibuffer

@@ -26,7 +26,10 @@
     "32-bit",
     "40-bit",
     "48-bit",
-    "64-bit"
+    "64-bit",
+    "integer",
+    "floating-point",
+    "ASCII"
   ],
   "repository": {
     "type": "git",

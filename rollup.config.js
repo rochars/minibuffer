@@ -11,13 +11,12 @@ import closure from 'rollup-plugin-closure-compiler-js';
 import babel from 'rollup-plugin-babel';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
+import fs from 'fs';
 
 // Read externs definitions
-const fs = require('fs');
 const externsSrc = fs.readFileSync('./externs/minibuffer.js', 'utf8');
 
 // License notes
-const licenseSrc = fs.readFileSync('./LICENSE', 'utf8');
 const license = '/*!\n'+
   'https://github.com/rochars/minibuffer\n' +
   'Copyright (c) 2018 Rafael da Silva Rocha.' +

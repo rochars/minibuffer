@@ -9,6 +9,8 @@ declare class MiniBuffer {
     
     constructor();
 
+    head: number;
+
     read(buffer: Uint8Array, typeDefinition: object): number;
 
     write(buffer: Uint8Array, typeDefinition: object, num: number, index?: number): void;

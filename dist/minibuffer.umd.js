@@ -891,7 +891,8 @@
    *
    */
 
-  var RANGE_EROR = "RangeError: Source is too large";
+  /** @type {string} */
+  var RANGE_EROR = "Range error";
 
   /**
    * A class to read and write to buffers.

@@ -29,7 +29,8 @@
 
 import {unpackFrom, packTo, unpackString, packStringTo} from 'byte-data';
 
-const RANGE_EROR = "RangeError: Source is too large";
+/** @type {string} */
+const RANGE_EROR = "Range error";
 
 /**
  * A class to read and write to buffers.

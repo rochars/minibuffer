@@ -10,7 +10,7 @@
 var assert = assert || require('assert');
 var MiniBuffer = MiniBuffer || require('./loader.js');
 var BinaryDataTypes = BinaryDataTypes || require('binary-data-types');
-var RANGE_EROR = "RangeError: Source is too large";
+var RANGE_EROR = /Range error/;
 
 // Little endian
 describe('write: 16-bit LE', function() {

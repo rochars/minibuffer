@@ -3,7 +3,7 @@
 ## version 0.1.0 (2018-07-12)
 - Add writeStr() to write ASCII strings to buffers
 - Add readStr() to read ASCII strings from buffers
-- Add buffer index validation on read() and write(); throws RangeError
+- Add buffer index validation on read() and write(); throws 'Range error'
 
 ## version 0.0.3 (2018-07-12)
 - Fix head on write()

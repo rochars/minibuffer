@@ -31,7 +31,10 @@
 
 import {unpackFrom, packTo, unpackString, packStringTo} from 'byte-data';
 
-/** @type {string} */
+/**
+ * @type {string}
+ * @private
+ */
 const RANGE_EROR = "Range error";
 
 /**

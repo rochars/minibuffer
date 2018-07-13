@@ -816,7 +816,10 @@ function unpackFrom(buffer, theType, index=0) {
  *
  */
 
-/** @type {string} */
+/**
+ * @type {string}
+ * @private
+ */
 const RANGE_EROR = "Range error";
 
 /**

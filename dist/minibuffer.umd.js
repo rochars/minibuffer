@@ -891,7 +891,10 @@
    *
    */
 
-  /** @type {string} */
+  /**
+   * @type {string}
+   * @private
+   */
   var RANGE_EROR = "Range error";
 
   /**

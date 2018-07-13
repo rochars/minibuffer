@@ -76,7 +76,7 @@ Or get it from [unpkg](https://unpkg.com/minibuffer):
 <script src="https://unpkg.com/minibuffer"></script>
 ```
 
-Or as a module from [jspm](https://jspm.io):
+Or load it as a module using [jspm](https://jspm.io):
 ```html
 <script type="module">
   import MiniBuffer from 'https://dev.jspm.io/minibuffer';
@@ -101,7 +101,7 @@ class MiniBuffer {}
 /**
  * @type {number}
  */
-MiniBuffer.head = 0;
+MiniBuffer.head;
 
 /**
  * Read a number from a buffer.

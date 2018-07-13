@@ -49,7 +49,7 @@ MiniBuffer.head = 0;
 
 /**
  * Read a number from a buffer.
- * @param {!Uint8Array} buffer The bufefr.
+ * @param {!Uint8Array} buffer The buffer.
  * @param {!Object} typeDefinition The type definition.
  * @param {?number=} index The index to read.
  * @return {number} The number.

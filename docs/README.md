@@ -45,16 +45,15 @@ https://github.com/rochars/minibuffer/tree/master/dist
 ## Use
 
 ### Node
-If you installed via [NPM](https://www.npmjs.com/) or [Yarn](https://yarnpkg.com), require MiniBuffer from **minibuffer**:
+If you installed via [NPM](https://www.npmjs.com/) or [Yarn](https://yarnpkg.com), **import MiniBuffer from minibuffer**:
 ```javascript
-const MiniBuffer = require('minibuffer');
+import MiniBuffer from 'minibuffer';
 let mb = new MiniBuffer();
 ```
 
-### ES module
-Import MiniBuffer from **minibuffer.js** in the *./dist* folder of this package:
+Or:
 ```javascript
-import MiniBuffer from './dist/minibuffer.js';
+const MiniBuffer = require('minibuffer');
 let mb = new MiniBuffer();
 ```
 
@@ -85,6 +84,13 @@ Or as a module from [jspm](https://jspm.io):
 </script>
 ```
 
+### ES bundle
+Import MiniBuffer from **minibuffer.js** in the *./dist* folder of this package:
+```javascript
+import MiniBuffer from './dist/minibuffer.js';
+let mb = new MiniBuffer();
+```
+
 ## API
 ```javascript
 /**
@@ -99,7 +105,7 @@ MiniBuffer.head = 0;
 
 /**
  * Read a number from a buffer.
- * @param {!Uint8Array} buffer The bufefr.
+ * @param {!Uint8Array} buffer The buffer.
  * @param {!Object} typeDefinition The type definition.
  * @param {?number=} index The index to read.
  * @return {number} The number.

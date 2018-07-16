@@ -59,7 +59,7 @@ export default [
       commonjs(),
       closure({
         languageIn: 'ECMASCRIPT6',
-        languageOut: 'ECMASCRIPT5',
+        languageOut: 'ECMASCRIPT3',
         compilationLevel: 'ADVANCED',
         warningLevel: 'VERBOSE',
         externs: [{src:externsSrc}]

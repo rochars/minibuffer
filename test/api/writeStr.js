@@ -8,7 +8,7 @@
  */
 
 var assert = assert || require('assert');
-var MiniBuffer = MiniBuffer || require('./loader.js');
+var MiniBuffer = MiniBuffer || require('../loader.js');
 var BinaryDataTypes = BinaryDataTypes || require('binary-data-types');
 var RANGE_EROR = /Range error/;
 

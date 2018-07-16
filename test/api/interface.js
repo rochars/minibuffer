@@ -8,7 +8,7 @@
  */
 
 var assert = assert || require('assert');
-var MiniBuffer = MiniBuffer || require('./loader.js');
+var MiniBuffer = MiniBuffer || require('../loader.js');
 
 describe('Check if API is available', function() {
     

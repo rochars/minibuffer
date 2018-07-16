@@ -52,13 +52,14 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "lint": "jshint index.js externs test",
-    "test": "nyc ./node_modules/mocha/bin/_mocha test --recursive -R dot",
-    "test-esm": "node ./node_modules/mocha/bin/_mocha test --esm --recursive -R dot",
-    "test-min": "node ./node_modules/mocha/bin/_mocha test --min --recursive -R dot",
-    "test-cjs": "node ./node_modules/mocha/bin/_mocha test --cjs --recursive -R dot",
+    "lint": "jshint index.js externs",
+    "test": "nyc ./node_modules/mocha/bin/_mocha test/api --recursive -R dot",
+    "test-esm": "node ./node_modules/mocha/bin/_mocha test/api --esm --recursive -R dot",
+    "test-min": "node ./node_modules/mocha/bin/_mocha test/api --min --recursive -R dot",
+    "test-cjs": "node ./node_modules/mocha/bin/_mocha test/api --cjs --recursive -R dot",
+    "test-tsc": "tsc ./test/TypeScript/index.ts",
     "test-dist": "npm run test-min && npm run test-cjs && npm run test-esm",
-    "rollup-bundle": "rollup -c && npm run test-dist",
+    "rollup-bundle": "rollup -c && npm run test-dist && npm run test-tsc",
     "doc": "./node_modules/.bin/jsdoc index.js -d docs/api -t node_modules/docdash",
     "build": "npm run lint && npm test && npm run rollup-bundle && npm run doc",
     "coverage": "nyc report --reporter=lcov > coverage.lcov && codecov"
@@ -77,7 +78,8 @@
     "rollup": "^0.61.2",
     "rollup-plugin-closure-compiler-js": "^1.0.6",
     "rollup-plugin-commonjs": "^9.1.3",
-    "rollup-plugin-node-resolve": "^3.3.0"
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "typescript": "^2.9.2"
   },
   "dependencies": {
     "byte-data": "^14.0.1"

@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## version 0.2.0 (unreleased)
+- No UMD; lib distributed as a ES module, CJS module and browser script.
+
 ## version 0.1.4 (2018-07-13)
 - Fix documentation issues.
 

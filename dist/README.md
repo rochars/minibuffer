@@ -1,11 +1,11 @@
 # Distribution
-This library is a ES module also distributed as a CommonJS module, UMD module and a compiled script for browsers. It works out of the box in Node when installed with ```npm install minibuffer```. It includes a [TypeScript](https://www.typescriptlang.org/) definition file.
+This library is a ES module also distributed as a CommonJS module and a compiled script for browsers. It works out of the box in Node when installed with ```npm install minibuffer```. It includes a [TypeScript](https://www.typescriptlang.org/) definition file.
 
 If you use the [Closure Compiler](https://github.com/google/closure-compiler), this package includes a externs file: **./externs/minibuffer.js**.
 
 ## If you are using this lib in a browser:
 
-You may load both **./dist/minibuffer.umd.js** and **./dist/minibuffer.min.js** in the browser with ```<script>``` tags. Ideally you should use **minibuffer.min.js**. You can load it via the https://unpkg.com and https://www.jsdelivr.com/ CDNs:
+You can load **./dist/minibuffer.min.js** in the browser with ```<script>``` tags. You may load it via the https://unpkg.com and https://www.jsdelivr.com/ CDNs:
 
 [unpkg](https://unpkg.com/minibuffer):
 ```html
@@ -21,15 +21,11 @@ You may load both **./dist/minibuffer.umd.js** and **./dist/minibuffer.min.js** 
 
 - The **CommonJS** dist is **./dist/minibuffer.cjs.js**. It is the dist file used by Node. It is served in the "main" field of package.json and is the source you are running when you **npm install minibuffer**. It is not compiled or minified.
 
-- The **UMD** module is **./dist/minibuffer.umd.js**. It is transpiled to ES5 and compatible with Node, AMD and browsers. It is served in the "browser" field of package.json.
-
 - The **browser-only** dist is **./dist/minibuffer.min.js**. It is transpiled to ES5 and compiled. It is used in the "unpkg" and "jsdelivr" fields of package.json.
 
 - The **ES6 bundle** is **./dist/minibuffer.js**, served as "es2015" in package.json. It is not compiled/minified.
 
 - **./index.js** is served as "module" in package.json. This should be the entry point for bundlers.
-
-If your module bundler is using "browser" as the entry point **your dist should work the same** but will be a larger file.
 
 ## LICENSE
 Copyright (c) 2018 Rafael da Silva Rocha.

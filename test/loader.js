@@ -18,14 +18,6 @@ if (process.argv[3] == '--min') {
     require('../dist/minibuffer.min.js');
     minibuffer = window.MiniBuffer;
 
-// UMD
-} else if (process.argv[3] == '--umd') {
-	console.log('umd tests');
-	minibuffer = require('../dist/minibuffer.umd.js');
-	if (minibuffer.toString().slice(0, 5) === "class") {
-		throw new Error('MiniBuffer in UMD dist should not be a ES6 class.');
-	}
-
 // CommonJS
 } else if (process.argv[3] == '--cjs') {
 	console.log('cjs tests');

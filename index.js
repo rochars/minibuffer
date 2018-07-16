@@ -29,7 +29,7 @@
 
 /** @module minibuffer */
 
-import {unpackFrom, packTo, unpackString, packStringTo} from 'byte-data';
+import {unpack, packTo, unpackString, packStringTo} from 'byte-data';
 
 /**
  * @type {string}
@@ -54,7 +54,7 @@ export default class MiniBuffer {
    * @param {!Uint8Array} buffer The buffer.
    * @param {!Object} typeDefinition The type definition.
    * @param {?number=} index The index to read.
-   * @return {number} The number.
+   * @return {number|undefined} The number.
    * @throws {Error} If word size + index > buffer.length
    */
   read(buffer, typeDefinition, index=null) {
@@ -64,8 +64,8 @@ export default class MiniBuffer {
     if (index + size > buffer.length) {
       throw new Error(RANGE_EROR);
     }
-    /** @type {number} */
-    let num = unpackFrom(buffer, typeDefinition, index);
+    /** @type {number|undefined} */
+    let num = unpack(buffer, typeDefinition, index);
     this.head = size + index;
     return num;
   }

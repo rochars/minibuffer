@@ -15,28 +15,8 @@ A minimalist buffer reader and writer.
 - Made with **[Closure Compiler](https://github.com/google/closure-compiler)** in mind (works great with others, too)
 
 ## Install
-
-### NPM
-To use it in your programs:
 ```
 npm install minibuffer
-```
-
-### Yarn
-To use it in your programs:
-```
-yarn add minibuffer
-```
-
-### GitHub
-This is not recommended as it will also include test and build assets in your installation. If this is what you want, you can:
-```
-git clone https://github.com/rochars/minibuffer
-```
-
-And then import/require what you want from the *minibuffer* folder:
-```
-const minibuffer = require('./minibuffer/dist/minibuffer.umd.js');
 ```
 
 You can also download one of the files in the *./dist* folder:  
@@ -51,7 +31,7 @@ import MiniBuffer from 'minibuffer';
 let mb = new MiniBuffer();
 ```
 
-Or:
+Or require MiniBuffer from minibuffer:
 ```javascript
 const MiniBuffer = require('minibuffer');
 let mb = new MiniBuffer();
@@ -162,13 +142,13 @@ npm install binary-data-types
 ```
 
 ## Distribution
-This library is a ES module also distributed as a CommonJS module, UMD module and a compiled script for browsers. It works out of the box in Node when installed with ```npm install minibuffer```. It includes a [TypeScript](https://www.typescriptlang.org/) definition file.
+This library is a ES module also distributed as a CommonJS module and a compiled script for browsers. It works out of the box in Node when installed with ```npm install minibuffer```. It includes a [TypeScript](https://www.typescriptlang.org/) definition file.
 
 If you use the [Closure Compiler](https://github.com/google/closure-compiler), this package includes a externs file: **./externs/minibuffer.js**.
 
 ### If you are using this lib in a browser:
 
-You may load both **./dist/minibuffer.umd.js** and **./dist/minibuffer.min.js** in the browser with ```<script>``` tags. Ideally you should use **minibuffer.min.js**. You can load it via the https://unpkg.com and https://www.jsdelivr.com/ CDNs:
+You can **./dist/minibuffer.min.js** in the browser with ```<script>``` tags. You may load it via the https://unpkg.com and https://www.jsdelivr.com/ CDNs:
 
 [unpkg](https://unpkg.com/minibuffer):
 ```html
@@ -184,15 +164,11 @@ You may load both **./dist/minibuffer.umd.js** and **./dist/minibuffer.min.js** 
 
 - The **CommonJS** dist is **./dist/minibuffer.cjs.js**. It is the dist file used by Node. It is served in the "main" field of package.json and is the source you are running when you **npm install minibuffer**. It is not compiled or minified.
 
-- The **UMD** module is **./dist/minibuffer.umd.js**. It is transpiled to ES5 and compatible with Node, AMD and browsers. It is served in the "browser" field of package.json.
-
 - The **browser-only** dist is **./dist/minibuffer.min.js**. It is transpiled to ES5 and compiled. It is used in the "unpkg" and "jsdelivr" fields of package.json.
 
 - The **ES6 bundle** is **./dist/minibuffer.js**, served as "es2015" in package.json. It is not compiled/minified.
 
 - **./index.js** is served as "module" in package.json. This should be the entry point for bundlers.
-
-If your module bundler is using "browser" as the entry point **your dist should work the same** but will be a larger file.
 
 ## Contributing to minibuffer
 **minibuffer** welcomes all contributions from anyone willing to work in good faith with other contributors and the community. No contribution is too small and all contributions are valued.

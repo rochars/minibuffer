@@ -109,43 +109,35 @@ class Integer {
      * @type {number}
      * @private
      */
-    this.bits = bits;
-    /**
-     * If this type it is signed or not.
-     * @type {boolean}
-     * @private
-     */
-    this.signed = signed;
+    this.bits_ = bits;
     /**
      * The number of bytes used by the data.
      * @type {number}
      * @private
      */
-    this.offset = 0;
-    /**
-     * Min value for numbers of this type.
-     * @type {number}
-     * @private
-     */
-    this.min = -Infinity;
-    /**
-     * Max value for numbers of this type.
-     * @type {number}
-     * @private
-     */
-    this.max = Infinity;
+    this.offset_ = 0;
     /**
      * The practical number of bits used by the data.
      * @type {number}
      * @private
      */
-    this.realBits_ = this.bits;
+    this.realBits_ = this.bits_;
     /**
      * The mask to be used in the last byte.
      * @type {number}
      * @private
      */
     this.lastByteMask_ = 255;
+    // Set the min and max values according to the number of bits
+    /** @type {number} */
+    let max = Math.pow(2, this.bits_);
+    if (signed) {
+      this.max_ = max / 2 -1;
+      this.min_ = -max / 2;
+    } else {
+      this.max_ = max - 1;
+      this.min_ = 0;
+    }
     this.build_();
   }
 
@@ -157,70 +149,31 @@ class Integer {
    */
   read(bytes, i=0) {
     let num = 0;
-    let x = this.offset - 1;
-    while (x > 0) {
-      num = (bytes[x + i] << x * 8) | num;
-      x--;
+    for(let x=0; x<this.offset_; x++) {
+      num += bytes[i + x] * Math.pow(256, x);
     }
-    num = (bytes[i] | num) >>> 0;
-    return this.overflow_(this.sign_(num));
+    return this.overflow_(this.sign_(num)); 
   }
 
   /**
    * Write one integer number to a byte buffer.
    * @param {!Array<number>} bytes An array of bytes.
-   * @param {number} number The number.
-   * @param {number=} j The index being written in the byte buffer.
-   * @return {number} The next index to write on the byte buffer.
-   */
-  write(bytes, number, j=0) {
-    number = this.overflow_(number);
-    bytes[j++] = number & 255;
-    for (let i = 2; i <= this.offset; i++) {
-      bytes[j++] = Math.floor(number / Math.pow(2, ((i - 1) * 8))) & 255;
-    }
-    return j;
-  }
-
-  /**
-   * Write one integer number to a byte buffer.
-   * @param {!Array<number>} bytes An array of bytes.
-   * @param {number} number The number.
+   * @param {number} num The number.
    * @param {number=} j The index being written in the byte buffer.
    * @return {number} The next index to write on the byte buffer.
    * @private
    */
-  writeEsoteric_(bytes, number, j=0) {
-    number = this.overflow_(number);
-    j = this.writeFirstByte_(bytes, number, j);
-    for (let i = 2; i < this.offset; i++) {
-      bytes[j++] = Math.floor(number / Math.pow(2, ((i - 1) * 8))) & 255;
+  write(bytes, num, j=0) {
+    j = this.writeFirstByte_(bytes, this.overflow_(num), j);
+    for (let i = 2; i < this.offset_; i++, j++) {
+      bytes[j] = Math.floor(num / Math.pow(2, ((i - 1) * 8))) & 255;
     }
-    if (this.bits > 8) {
-      bytes[j++] = Math.floor(
-          number / Math.pow(2, ((this.offset - 1) * 8))) &
-        this.lastByteMask_;
-    }
-    return j;
-  }
-
-  /**
-   * Read a integer number from a byte buffer by turning int bytes
-   * to a string of bits. Used for data with more than 32 bits.
-   * @param {!Uint8Array} bytes An array of bytes.
-   * @param {number=} i The index to read.
-   * @return {number}
-   * @private
-   */
-  readBits_(bytes, i=0) {
-    let binary = '';
-    let j = 0;
-    while(j < this.offset) {
-      let bits = bytes[i + j].toString(2);
-      binary = new Array(9 - bits.length).join('0') + bits + binary;
+    if (this.bits_ > 8) {
+      bytes[j] = Math.floor(
+          num / Math.pow(2, ((this.offset_ - 1) * 8))) & this.lastByteMask_;
       j++;
     }
-    return this.overflow_(this.sign_(parseInt(binary, 2)));
+    return j;
   }
 
   /**
@@ -231,12 +184,7 @@ class Integer {
   build_() {
     this.setRealBits_();
     this.setLastByteMask_();
-    this.setMinMax_();
-    this.offset = this.bits < 8 ? 1 : Math.ceil(this.realBits_ / 8);
-    if ((this.realBits_ != this.bits) || this.bits < 8 || this.bits > 32) {
-      this.write = this.writeEsoteric_;
-      this.read = this.readBits_;
-    }
+    this.offset_ = this.bits_ < 8 ? 1 : Math.ceil(this.realBits_ / 8);
   }
 
   /**
@@ -246,52 +194,35 @@ class Integer {
    * @private
    */
   sign_(num) {
-    if (num > this.max) {
-      num -= (this.max * 2) + 2;
+    if (num > this.max_) {
+      num -= (this.max_ * 2) + 2;
     }
     return num;
   }
 
   /**
-   * Limit the value according to the bit depth in case of
-   * overflow or underflow.
-   * @param {number} value The data.
+   * Trows error in case of underflow or overflow.
+   * @param {number} num The number.
    * @return {number}
+   * @throws {Error} on overflow or underflow.
    * @private
    */
-  overflow_(value) {
-    if (value > this.max) {
+  overflow_(num) {
+    if (num > this.max_) {
       throw new Error('Overflow.');
-    } else if (value < this.min) {
+    } else if (num < this.min_) {
       throw new Error('Underflow.');
     }
-    return value;
-  }
-
-  /**
-   * Set the minimum and maximum values for the type.
-   * @private
-   */
-  setMinMax_() {
-    let max = Math.pow(2, this.bits);
-    if (this.signed) {
-      this.max = max / 2 -1;
-      this.min = -max / 2;
-    } else {
-      this.max = max - 1;
-      this.min = 0;
-    }
+    return num;
   }
 
   /**
    * Set the practical bit number for data with bit count different
-   * from the standard types (8, 16, 32, 40, 48, 64) and more than 8 bits.
+   * from the standard types (8, 16, 32, 40, 48, 64).
    * @private
    */
   setRealBits_() {
-    if (this.bits > 8) {
-      this.realBits_ = ((this.bits - 1) | 7) + 1;
-    }
+    this.realBits_ = ((this.bits_ - 1) | 7) + 1;
   }
 
   /**
@@ -299,8 +230,9 @@ class Integer {
    * @private
    */
   setLastByteMask_() {
-    let r = 8 - (this.realBits_ - this.bits);
-    this.lastByteMask_ = Math.pow(2, r > 0 ? r : 8) -1;
+    /** @type {number} */
+    let r = 8 - (this.realBits_ - this.bits_);
+    this.lastByteMask_ = Math.pow(2, r > 0 ? r : 8) - 1;
   }
 
   /**
@@ -312,12 +244,12 @@ class Integer {
    * @private
    */
   writeFirstByte_(bytes, number, j) {
-    if (this.bits < 8) {
-      bytes[j++] = number < 0 ? number + Math.pow(2, this.bits) : number;
+    if (this.bits_ < 8) {
+      bytes[j] = number < 0 ? number + Math.pow(2, this.bits_) : number;
     } else {
-      bytes[j++] = number & 255;
+      bytes[j] = number & 255;
     }
-    return j;
+    return j + 1;
   }
 }
 
@@ -350,14 +282,11 @@ class Integer {
  * @see https://github.com/rochars/byte-data
  */
 
-/**
- * Validate that the code is a valid ASCII code.
- * @param {number} code The code.
- * @throws {Error} If the code is not a valid ASCII code.
- */
-function validateASCIICode(code) {
-  if (code > 127) {
-    throw new Error ('Bad ASCII code.');
+function validateValueType(value) {
+  if (value !== null) {
+    if ([Number, Boolean].indexOf(value.constructor) == -1) {
+      throw new Error('Expected number, boolean or null; found ' + value.constructor);
+    }
   }
 }
 
@@ -442,10 +371,17 @@ function validateIntType_(theType) {
  * @type {boolean}
  * @private
  */
-const BE_ENV = new Uint8Array(new Uint32Array([0x12345678]).buffer)[0] === 0x12;
+const BE_ENV = new Uint8Array(new Uint32Array([1]).buffer)[0] === 0;
+/**
+ * @type {number}
+ * @private
+ */
 const HIGH = BE_ENV ? 1 : 0;
+/**
+ * @type {number}
+ * @private
+ */
 const LOW = BE_ENV ? 0 : 1;
-
 /**
  * @type {!Int8Array}
  * @private
@@ -491,7 +427,6 @@ let gInt_ = {};
 function setUp_(theType) {
   validateType(theType);
   theType.offset = theType.bits < 8 ? 1 : Math.ceil(theType.bits / 8);
-  theType.be = theType.be || false;
   setReader(theType);
   setWriter(theType);
   gInt_ = new Integer(
@@ -506,17 +441,16 @@ function setUp_(theType) {
  * @param {!Uint8Array|!Array<number>} buffer The buffer to write the bytes to.
  * @param {number} index The index to start writing.
  * @param {number} len The end index.
- * @param {!Function} validate The function used to validate input.
- * @param {boolean} be True if big-endian.
  * @return {number} the new index to be written.
  * @private
  */
-function writeBytes_(value, theType, buffer, index, len, validate, be) {
+function writeBytes_(value, theType, buffer, index, len) {
+  validateNotUndefined(value);
+  validateValueType(value);
   while (index < len) {
-    validate(value, theType);
     index = writer_(buffer, value, index);
   }
-  if (be) {
+  if (theType.be) {
     endianness(
       buffer, theType.offset, index - theType.offset, index);
   }
@@ -662,7 +596,7 @@ function setReader(theType) {
       reader_ = read16F_;
     } else if(theType.bits == 32) {
       reader_ = read32F_;
-    } else if(theType.bits == 64) {
+    } else {
       reader_ = read64F_;
     }
   } else {
@@ -681,7 +615,7 @@ function setWriter(theType) {
       writer_ = write16F_;
     } else if(theType.bits == 32) {
       writer_ = write32F_;
-    } else if(theType.bits == 64) {
+    } else {
       writer_ = write64F_;
     }
   } else {
@@ -713,28 +647,95 @@ function setWriter(theType) {
  *
  */
 
-// ASCII characters
 /**
- * Read a string of ASCII characters from a byte buffer.
- * @param {!Uint8Array} bytes A byte buffer.
+ * Read a string of UTF-8 characters from a byte buffer.
+ * @see https://encoding.spec.whatwg.org/#the-encoding
+ * @see https://stackoverflow.com/a/34926911
+ * @param {!Uint8Array|!Array<!number>} buffer A byte buffer.
  * @param {number=} index The index to read.
  * @param {?number=} len The number of bytes to read.
  * @return {string}
- * @throws {Error} If a character in the string is not valid ASCII.
+ * @throws {Error} If read a value that is not UTF-8.
  */
-function unpackString(bytes, index=0, len=null) {
-  let chrs = '';
-  len = len ? index + len : bytes.length;
-  while (index < len) {
-    validateASCIICode(bytes[index]);
-    chrs += String.fromCharCode(bytes[index]);
-    index++;
+function unpackString(buffer, index=0, len=null) {
+  len = len !== null ? index + len : buffer.length;
+  /** @type {string} */
+  let str = "";
+  while(index < len) {
+    /** @type {number} */
+    let charCode = buffer[index++];
+    if (charCode >> 7 === 0) {
+      str += String.fromCharCode(charCode);
+    } else {
+      /** @type {number} */
+      let count = 0;
+      if (charCode >> 5 === 0x06) {
+        count = 1;
+      } else if (charCode >> 4 === 0x0e) {
+        count = 2;
+      } else if (charCode >> 3 === 0x1e) {
+        count = 3;
+      }
+      charCode = charCode & (1 << (8 - count - 1)) - 1;
+      for (let i = 0; i < count; i++) {
+        charCode = (charCode << 6) | (buffer[index++] & 0x3f);
+      }
+      if (charCode <= 0xffff) {
+        str += String.fromCharCode(charCode);
+      } else {
+        charCode -= 0x10000;
+        str += String.fromCharCode(
+          ((charCode >> 10) & 0x3ff) + 0xd800,
+          (charCode & 0x3ff) + 0xdc00);
+      }
+    }
   }
-  return chrs;
+  return str;
 }
 
 /**
- * Write a string of ASCII characters to a byte buffer.
+ * Write a string of UTF-8 characters as a byte buffer.
+ * @see https://encoding.spec.whatwg.org/#utf-8-encoder
+ * @param {string} str The string to pack.
+ * @return {!Array<number>} The next index to write on the buffer.
+ * @throws {Error} If a character in the string is not UTF-8.
+ */
+function packString(str) {
+  /** @type {!Array<!number>} */
+  let bytes = [];
+  for (let i = 0; i < str.length; i++) {
+    /** @type {number} */
+    let codePoint = str.codePointAt(i);
+    if (codePoint < 128) {
+      bytes.push(codePoint);
+    } else {
+      /** @type {number} */
+      let count = 0;
+      /** @type {number} */
+      let offset = 0;
+      if (codePoint <= 0x07FF) {
+        count = 1;
+        offset = 0xC0;
+      } else if(codePoint <= 0xFFFF) {
+        count = 2;
+        offset = 0xE0;
+      } else if(codePoint <= 0x10FFFF) {
+        count = 3;
+        offset = 0xF0;
+        i++;
+      }
+      bytes.push((codePoint >> (6 * count)) + offset);
+      while (count > 0) {
+        bytes.push(0x80 | (codePoint >> (6 * (count - 1)) & 0x3F));
+        count--;
+      }
+    }
+  }
+  return bytes;
+}
+
+/**
+ * Write a string of UTF-8 characters to a byte buffer.
  * @param {string} str The string to pack.
  * @param {!Uint8Array|!Array<number>} buffer The output buffer.
  * @param {number=} index The index to write in the buffer.
@@ -742,11 +743,10 @@ function unpackString(bytes, index=0, len=null) {
  * @throws {Error} If a character in the string is not valid ASCII.
  */
 function packStringTo(str, buffer, index=0) {
-  for (let i = 0; i < str.length; i++) {
-    let code = str.charCodeAt(i);
-    validateASCIICode(code);
-    buffer[index] = code;
-    index++;
+  /** @type {!Array<!number>} */
+  let bytes = packString(str);
+  for (let i = 0; i < bytes.length; i++) {
+    buffer[index++] = bytes[i];
   }
   return index;
 }
@@ -767,24 +767,26 @@ function packTo(value, theType, buffer, index=0) {
     theType,
     buffer,
     index,
-    index + theType.offset,
-    validateNotUndefined,
-    theType.be);
+    index + theType.offset);
 }
 
 /**
- * Unpack a number from a byte buffer by index.
- * @param {!Uint8Array} buffer The byte buffer.
+ * Unpack a number from a byte buffer.
+ * @param {!Uint8Array|!Array<!number>} buffer The byte buffer.
  * @param {!Object} theType The type definition.
  * @param {number=} index The buffer index to read.
- * @return {number}
+ * @return {number|undefined}
  * @throws {Error} If the type definition is not valid
  */
-function unpackFrom(buffer, theType, index=0) {
+function unpack(buffer, theType, index=0) {
   setUp_(theType);
+  if ((theType.offset + index) > buffer.length) {
+    throw Error('Bad buffer length.');
+  }
   if (theType.be) {
     endianness(buffer, theType.offset, index, index + theType.offset);
   }
+  /** @type {number} */
   let value = reader_(buffer, index);
   if (theType.be) {
     endianness(buffer, theType.offset, index, index + theType.offset);
@@ -839,7 +841,7 @@ class MiniBuffer {
    * @param {!Uint8Array} buffer The buffer.
    * @param {!Object} typeDefinition The type definition.
    * @param {?number=} index The index to read.
-   * @return {number} The number.
+   * @return {number|undefined} The number.
    * @throws {Error} If word size + index > buffer.length
    */
   read(buffer, typeDefinition, index=null) {
@@ -849,8 +851,8 @@ class MiniBuffer {
     if (index + size > buffer.length) {
       throw new Error(RANGE_EROR);
     }
-    /** @type {number} */
-    let num = unpackFrom(buffer, typeDefinition, index);
+    /** @type {number|undefined} */
+    let num = unpack(buffer, typeDefinition, index);
     this.head = size + index;
     return num;
   }

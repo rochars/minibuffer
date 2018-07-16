@@ -8,7 +8,6 @@
  */
 
 import closure from 'rollup-plugin-closure-compiler-js';
-import babel from 'rollup-plugin-babel';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import fs from 'fs';
@@ -41,22 +40,6 @@ export default [
     plugins: [
       resolve(),
       commonjs()
-    ]
-  },
-  // umd
-  {
-    input: 'index.js',
-    output: [
-      {
-        file: 'dist/minibuffer.umd.js',
-        name: 'MiniBuffer',
-        format: 'umd',
-      }
-    ],
-    plugins: [
-      resolve(),
-      commonjs(),
-      babel()
     ]
   },
   // browser

@@ -2,6 +2,7 @@
 
 ## version 0.2.0 (unreleased)
 - No UMD; lib distributed as a ES module, CJS module and browser script.
+- Add the clear() method to the MiniBuffer API; set the header to 0
 
 ## version 0.1.4 (2018-07-13)
 - Fix documentation issues.

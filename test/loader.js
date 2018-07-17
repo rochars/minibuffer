@@ -1,11 +1,10 @@
-/**
+/*
  * Copyright (c) 2018 Rafael da Silva Rocha.
- * https://github.com/rochars/minibuffer
- *
  */
 
 /**
  * @fileoverview minibuffer test loader.
+ * @see https://github.com/rochars/minibuffer
  */
 
 /** @type {Object} */

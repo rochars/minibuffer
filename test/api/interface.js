@@ -19,6 +19,10 @@ describe('Check if API is available', function() {
         let minibuffer = new MiniBuffer();
         assert.equal(minibuffer.head, 0);
     });
+    it("should have tje clear method", function() {
+        let minibuffer = new MiniBuffer();
+        assert.equal(minibuffer.clear(), undefined);
+    });
     it("should have the read method", function() {
         let minibuffer = new MiniBuffer();
         assert.equal(minibuffer.read.constructor, Function);

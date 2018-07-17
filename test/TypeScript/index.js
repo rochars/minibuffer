@@ -19,5 +19,5 @@ mb.head = 0;
 mb.write(buffer, typeDefinition, num);
 mb.head = 0;
 mb.writeStr(buffer, str);
-mb.head = 0;
+mb.clear();
 mb.readStr(buffer, 2);

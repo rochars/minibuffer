@@ -23,7 +23,7 @@
  */
 
 /**
- * @fileoverview Externs for minibuffer 0.1
+ * @fileoverview Externs for minibuffer 0.2
  *
  * @see https://github.com/rochars/minibuffer
  * @externs
@@ -46,6 +46,11 @@ var typeDefinition = {
  * @type {number}
  */
 MiniBuffer.head = 0;
+
+/**
+ * Set the MiniBuffer head to zero.
+ */
+MiniBuffer.clear = function() {};
 
 /**
  * Read a number from a buffer.

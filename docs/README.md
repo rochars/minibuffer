@@ -11,7 +11,7 @@ A minimalist buffer reader and writer.
 - **Use it out of the box in the browser**
 - **Use it out of the box in Node**
 - **Use it out of the box with [TypeScript](https://www.typescriptlang.org/)**
-- **Less than 2kb minified + compressed, less than 5kb minified**
+- **Less than 3kb minified + compressed, less than 6kb minified**
 - Made with **[Closure Compiler](https://github.com/google/closure-compiler)** in mind (works great with others, too)
 
 ## Install
@@ -123,6 +123,11 @@ MiniBuffer.writeStr(buffer, str, size=str.length, index=null) {}
  * @throws {Error} If size + index > buffer.length
  */
 MiniBuffer.readStr(buffer, size, index=null) {}
+
+/**
+ * Set the MiniBuffer head to zero.
+ */
+MiniBuffer.clear() {};
 ```
 
 ### Type definitions

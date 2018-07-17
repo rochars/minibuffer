@@ -1,10 +1,10 @@
 /*
- * https://github.com/rochars/minibuffer
  * Copyright (c) 2018 Rafael da Silva Rocha.
  */
 
 /**
- * @fileoverview rollup configuration file.
+ * @fileoverview rollup configuration.
+ * @see https://github.com/rochars/minibuffer
  */
 
 import closure from 'rollup-plugin-closure-compiler-js';

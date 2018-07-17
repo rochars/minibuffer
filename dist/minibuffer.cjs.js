@@ -837,6 +837,13 @@ class MiniBuffer {
   }
 
   /**
+   * Set the MiniBuffer head to zero.
+   */
+  clear() {
+    this.head = 0;
+  }
+
+  /**
    * Read a number from a buffer.
    * @param {!Uint8Array} buffer The buffer.
    * @param {!Object} typeDefinition The type definition.
@@ -876,7 +883,7 @@ class MiniBuffer {
   }
 
   /**
-   * Read a ASCII string from a buffer.
+   * Read a UTF-8 string from a buffer.
    * @param {!Uint8Array} buffer The buffer.
    * @param {number} size the max size of the string.
    * @param {?number=} index The buffer index to read.
@@ -899,7 +906,7 @@ class MiniBuffer {
   }
 
   /**
-   * Write a ASCII string to a buffer. If the string is smaller
+   * Write a UTF-8 string to a buffer. If the string is smaller
    * than the max size the output buffer is filled with 0s.
    * @param {!Uint8Array} buffer The buffer.
    * @param {string} str The string to be written as bytes.

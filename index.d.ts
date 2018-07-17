@@ -1,4 +1,4 @@
-// Type definitions for minibuffer 0.1
+// Type definitions for minibuffer 0.2
 // Project: https://github.com/rochars/minibuffer
 // Definitions by: Rafael da Silva Rocha <https://github.com/rochars>
 // Definitions: https://github.com/rochars/minibuffer
@@ -10,6 +10,8 @@ declare class MiniBuffer {
     constructor();
 
     head: number;
+
+    clear(): void;
 
     read(buffer: Uint8Array, typeDefinition: object): number;
 

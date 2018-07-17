@@ -11,7 +11,7 @@ var assert = assert || require('assert');
 var MiniBuffer = MiniBuffer || require('../loader.js');
 
 // Little endian
-describe('read: 16-bit LE', function() {
+describe('clear', function() {
 
     // Create a MiniBuffer
     var mb = new MiniBuffer();
@@ -21,7 +21,7 @@ describe('read: 16-bit LE', function() {
     mb.clear();
 
     // Tests
-    it('should have the head set to 2', function() {
+    it('should have the head set to 0', function() {
         assert.equal(mb.head, 0);
     });
 });

@@ -72,6 +72,8 @@ let mb = new MiniBuffer();
 ```
 
 ## API
+Mind that *read()*, *write()*, *readStr()* and *writeStr()* start by default from the *MiniBuffer.head* position. **After the methods the MiniBuffer.head is updated to a new position**. Use *MiniBuffer.clear()* to set the head back to 0.
+
 ```javascript
 /**
  * A class to read and write to buffers.

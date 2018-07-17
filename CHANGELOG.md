@@ -1,8 +1,9 @@
 # CHANGELOG
 
-## version 0.2.0 (unreleased)
+## version 0.2.0 (2018-07-16)
 - No UMD; lib distributed as a ES module, CJS module and browser script.
 - Add the clear() method to the MiniBuffer API; set the header to 0
+- Write and read ZSTR strings with readStr (by passing size = -1) and writeStr (by passing size = str.length + 1)
 
 ## version 0.1.4 (2018-07-13)
 - Fix documentation issues.

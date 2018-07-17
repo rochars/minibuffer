@@ -12,6 +12,28 @@ var MiniBuffer = MiniBuffer || require('../loader.js');
 var BinaryDataTypes = BinaryDataTypes || require('binary-data-types');
 var RANGE_EROR = /Range error/;
 
+// ZSTRs
+describe('writeStr() ZSTR', function() {
+
+    // Create a MiniBuffer
+    var mb = new MiniBuffer();
+
+    // Create a buffer
+    var file = new Uint8Array([0, 0, 253, 2, 1, 0, 0, 0]);
+
+    // Write a ZSTR to the buffer
+    mb.writeStr(file, 'a', 2, 2);
+
+    // Tests
+    it('should have the head set to 4', function() {
+        assert.equal(mb.head, 4);
+    });
+    it('original buffer should have been written', function() {
+        assert.deepEqual(file, new Uint8Array([0, 0, 97, 0, 1, 0, 0, 0]));
+    });
+});
+
+// non-ZSTRs
 describe('writeStr()', function() {
 
     // Create a MiniBuffer

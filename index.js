@@ -106,12 +106,17 @@ export default class MiniBuffer {
   readStr(buffer, size, index=null) {
     index = index === null ? this.head : index;
     size = index + size;
+    let zstr = size === -1 ? true : false;
+    size = zstr ? buffer.length : size;
     if (size > buffer.length) {
       throw new Error(RANGE_EROR);
     }
     /** @type {string} */
     let str = '';
     for (; index<size; index++) {
+      if (buffer[index] === 0) {
+        break;
+      }
       str += unpackString(buffer, index, 1);
     }
     this.head = index;

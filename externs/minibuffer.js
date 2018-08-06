@@ -23,72 +23,135 @@
  */
 
 /**
- * @fileoverview Externs for minibuffer 0.2
- *
+ * @fileoverview Externs for minibuffer 0.3.0
  * @see https://github.com/rochars/minibuffer
  * @externs
  */
 
-/**
- * A class to read and write to buffers.
- */
-var MiniBuffer = {};
-
-// The types param
-var typeDefinition = {
+/** @type {!Object} */
+var theType = {
 	bits: 0,
 	signed: false,
-	float: false,
+	fp: false,
 	be: false
 };
 
 /**
- * @type {number}
+ * Read a string of UTF-8 characters from a byte buffer.
+ * @param {!Uint8Array|!Array<number>} buffer A byte buffer.
+ * @param {number=} index The buffer index to start reading.
+ * @param {number=} end The buffer index to stop reading, non inclusive.
+ *   Assumes buffer length if undefined.
+ * @return {string}
  */
-MiniBuffer.head = 0;
+function unpackString(buffer, index=0, end=buffer.length) {}
 
 /**
- * Set the MiniBuffer head to zero.
- */
-MiniBuffer.clear = function() {};
+ * Write a string of UTF-8 characters as a byte buffer.
+ * @param {string} str The string to pack.
+ * @return {!Array<number>} The UTF-8 string bytes.
+ */ 
+function packString(str) {}
 
 /**
- * Read a number from a buffer.
- * @param {!Uint8Array} buffer The buffer.
- * @param {!Object} typeDefinition The type definition.
- * @param {?number=} index The index to read.
- * @return {number} The number.
- * @throws {Error} If word size + index > buffer.length
+ * Write a string of UTF-8 characters to a byte buffer.
+ * @param {string} str The string to pack.
+ * @param {!Uint8Array|!Array<number>} buffer The output buffer.
+ * @param {number=} index The buffer index to start writing.
+ *   Assumes zero if undefined.
+ * @return {number} The next index to write in the buffer.
  */
-MiniBuffer.read = function(buffer, typeDefinition, index=null) {};
+function packStringTo(str, buffer, index=0) {}
+
+// Numbers
+/**
+ * Pack a number as a byte buffer.
+ * @param {number} value The number.
+ * @param {!Object} theType The type definition.
+ * @return {!Array<number>} The packed value.
+ * @throws {Error} If the type definition is not valid.
+ * @throws {Error} If the value is not valid.
+ */
+function pack(value, theType) {}
 
 /**
- * Write a number to a buffer.
- * @param {!Uint8Array} buffer The buffer.
- * @param {!Object} typeDefinition The type definition.
- * @param {number} num The number to write.
- * @param {?number=} index The buffer index to write.
- * @throws {Error} If word size + index > buffer.length
+ * Pack a number to a byte buffer.
+ * @param {number} value The value.
+ * @param {!Object} theType The type definition.
+ * @param {!Uint8Array|!Array<number>} buffer The output buffer.
+ * @param {number=} index The buffer index to write. Assumes 0 if undefined.
+ * @return {number} The next index to write.
+ * @throws {Error} If the type definition is not valid.
+ * @throws {Error} If the value is not valid.
  */
-MiniBuffer.write = function(buffer, typeDefinition, num, index=null) {};
+function packTo(value, theType, buffer, index=0) {}
 
 /**
- * Write a ASCII string to a buffer. If the string is smaller
- * than the max size the output buffer is filled with 0s.
- * @param {!Uint8Array} buffer The buffer.
- * @param {string} str The string to be written as bytes.
- * @param {number=} size The size of the string.
- * @param {?number=} index The buffer index to write.
- * @throws {Error} If size + index > buffer.length
+ * Pack an array of numbers as a byte buffer.
+ * @param {!Array<number>|!TypedArray} values The values.
+ * @param {!Object} theType The type definition.
+ * @return {!Array<number>} The packed values.
+ * @throws {Error} If the type definition is not valid.
+ * @throws {Error} If any of the values are not valid.
  */
-MiniBuffer.writeStr = function(buffer, str, size=str.length, index=null) {};
+function packArray(values, theType) {}
 
 /**
- * Read a ASCII string from a buffer.
- * @param {!Uint8Array} buffer The buffer.
- * @param {number} size the max size of the string.
- * @param {?number=} index The buffer index to read.
- * @return {string} The string.
- * @throws {Error} If size + index > buffer.length
+ * Pack a array of numbers to a byte buffer.
+ * @param {!Array<number>|!TypedArray} values The value.
+ * @param {!Object} theType The type definition.
+ * @param {!Uint8Array|!Array<number>} buffer The output buffer.
+ * @param {number=} index The buffer index to start writing.
+ *   Assumes zero if undefined.
+ * @return {number} The next index to write.
+ * @throws {Error} If the type definition is not valid.
+ * @throws {Error} If the value is not valid.
  */
-MiniBuffer.readStr = function(buffer, size, index=null) {};
+function packArrayTo(values, theType, buffer, index=0) {}
+
+/**
+ * Unpack a number from a byte buffer.
+ * @param {!Uint8Array|!Array<number>} buffer The byte buffer.
+ * @param {!Object} theType The type definition.
+ * @param {number=} index The buffer index to read. Assumes zero if undefined.
+ * @return {number}
+ * @throws {Error} If the type definition is not valid
+ * @throws {Error} On bad buffer length.
+ */
+function unpack(buffer, theType, index=0) {}
+
+/**
+ * Unpack an array of numbers from a byte buffer.
+ * @param {!Uint8Array|!Array<number>} buffer The byte buffer.
+ * @param {!Object} theType The type definition.
+ * @param {number=} index The buffer index to start reading.
+ *   Assumes zero if undefined.
+ * @param {number=} end The buffer index to stop reading.
+ *   Assumes the buffer length if undefined.
+ * @param {boolean=} safe If set to false, extra bytes in the end of
+ *   the array are ignored and input buffers with insufficient bytes will
+ *   output a empty array. If safe is set to true the function
+ *   will throw a 'Bad buffer length' error. Defaults to false.
+ * @return {!Array<number>}
+ * @throws {Error} If the type definition is not valid
+ */
+function unpackArray(
+	buffer, theType, index=0, end=buffer.length, safe=false) {}
+
+/**
+ * Unpack a array of numbers to a typed array.
+ * @param {!Uint8Array|!Array<number>} buffer The byte buffer.
+ * @param {!Object} theType The type definition.
+ * @param {!TypedArray|!Array<number>} output The output array.
+ * @param {number=} index The buffer index to start reading.
+ *   Assumes zero if undefined.
+ * @param {number=} end The buffer index to stop reading.
+ *   Assumes the buffer length if undefined.
+ * @param {boolean=} safe If set to false, extra bytes in the end of
+ *   the array are ignored and input buffers with insufficient bytes will
+ *   write nothing to the output array. If safe is set to true the function
+ *   will throw a 'Bad buffer length' error. Defaults to false.
+ * @throws {Error} If the type definition is not valid
+ */
+function unpackArrayTo(
+	buffer, theType, output, index=0, end=buffer.length, safe=false) {}

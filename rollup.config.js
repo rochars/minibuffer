@@ -3,35 +3,33 @@
  */
 
 /**
- * @fileoverview rollup configuration.
+ * @fileoverview rollup configuration file.
  * @see https://github.com/rochars/minibuffer
  */
 
 import closure from 'rollup-plugin-closure-compiler-js';
+import {terser} from 'rollup-plugin-terser';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import fs from 'fs';
 
-// Read externs definitions
-const externsSrc = fs.readFileSync('./externs/minibuffer.js', 'utf8');
+// Externs
+const externsFile = fs.readFileSync('./externs/minibuffer.js', 'utf8');
 
-// License notes
-const license = '/*!\n'+
-  'https://github.com/rochars/minibuffer\n' +
-  'Copyright (c) 2018 Rafael da Silva Rocha.' +
-  '\n */\n';
+// Polyfills for the UMD
+const polyfills = fs.readFileSync('./scripts/polyfills.js', 'utf8');
+
+// GCC UMD wrapper
+const outputWrapper =
+  "typeof module!=='undefined'?module.exports=exports :" +
+  "typeof define==='function'&&define.amd?define(['exports'],exports) :" +
+  "typeof global!=='undefined'?global.minibuffer=exports:null; return exports;})();";
 
 export default [
-  // cjs, es
+  // ES6 bundle
   {
     input: 'index.js',
     output: [
-      {
-        file: 'dist/minibuffer.cjs.js',
-        name: 'minibuffer',
-        footer: 'module.exports.default = MiniBuffer;',
-        format: 'cjs'
-      },
       {
         file: 'dist/minibuffer.js',
         format: 'es'
@@ -42,28 +40,55 @@ export default [
       commonjs()
     ]
   },
-  // browser
+  // ES6 bundle, minified
   {
-    input: 'index.js',
+    input: 'dist/minibuffer.js',
     output: [
       {
-        name: 'mb',
-        format: 'iife',
         file: 'dist/minibuffer.min.js',
-        banner: license,
-        footer: 'window["MiniBuffer"]=mb;'
+        format: 'es'
+      },
+    ],
+    plugins: [
+      terser({
+          compress: {
+            dead_code: true,
+            unsafe: true
+          }
+      })
+    ]
+  },
+  // UMD, ES3, polyfills included, minified
+  {
+    input: 'dist/minibuffer.js',
+    output: [
+      {
+        file: 'dist/minibuffer.umd.js',
+        name: 'minibuffer',
+        format: 'cjs',
+        strict: false,
+        banner: 'var exports=exports||{};'
       }
     ],
     plugins: [
-      resolve(),
-      commonjs(),
       closure({
         languageIn: 'ECMASCRIPT6',
         languageOut: 'ECMASCRIPT3',
         compilationLevel: 'ADVANCED',
         warningLevel: 'VERBOSE',
-        externs: [{src:externsSrc}]
+        outputWrapper: ';var minibuffer=(function(exports){' +
+          polyfills + '%output%' +
+          outputWrapper,
+        assumeFunctionWrapper: true,
+        rewritePolyfills: true,
+        externs: [{src: externsFile + 'exports={};'}]
+      }),
+      terser({
+        compress: {
+          dead_code: true,
+          unsafe: true
+        }
       })
     ]
-  }
+  },
 ];

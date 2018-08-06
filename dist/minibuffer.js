@@ -27,26 +27,28 @@
  * @see https://github.com/rochars/endianness
  */
 
+/** @module endianness */
+
 /**
  * Swap the byte ordering in a buffer. The buffer is modified in place.
- * @param {!Array<number|string>|!Uint8Array} bytes The bytes.
+ * @param {!Array|!Uint8Array} bytes The bytes.
  * @param {number} offset The byte offset.
- * @param {number=} index The start index. Assumes 0.
+ * @param {number=} start The start index. Assumes 0.
  * @param {number=} end The end index. Assumes the buffer length.
  * @throws {Error} If the buffer length is not valid.
  */
-function endianness(bytes, offset, index=0, end=bytes.length) {
+function endianness(bytes, offset, start=0, end=bytes.length) {
   if (end % offset) {
     throw new Error("Bad buffer length.");
   }
-  for (; index < end; index += offset) {
+  for (let index = start; index < end; index += offset) {
     swap(bytes, offset, index);
   }
 }
 
 /**
  * Swap the byte order of a value in a buffer. The buffer is modified in place.
- * @param {!Array<number|string>|!Uint8Array} bytes The bytes.
+ * @param {!Array|!Uint8Array} bytes The bytes.
  * @param {number} offset The byte offset.
  * @param {number} index The start index.
  * @private
@@ -54,7 +56,7 @@ function endianness(bytes, offset, index=0, end=bytes.length) {
 function swap(bytes, offset, index) {
   offset--;
   for(let x = 0; x < offset; x++) {
-    /** @type {number|string} */
+    /** @type {*} */
     let theByte = bytes[index + x];
     bytes[index + x] = bytes[index + offset];
     bytes[index + offset] = theByte;
@@ -63,7 +65,7 @@ function swap(bytes, offset, index) {
 }
 
 /*
- * Copyright (c) 2017-2018 Rafael da Silva Rocha.
+ * Copyright (c) 2018 Rafael da Silva Rocha.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -87,168 +89,128 @@ function swap(bytes, offset, index) {
  */
 
 /**
- * @fileoverview Pack and unpack two's complement ints and unsigned ints.
- * @see https://github.com/rochars/byte-data
+ * @fileoverview Functions to serialize and deserialize UTF-8 strings.
+ * @see https://github.com/rochars/utf8-buffer
+ * @see https://encoding.spec.whatwg.org/#the-encoding
+ * @see https://encoding.spec.whatwg.org/#utf-8-encoder
  */
+
+/** @module utf8-buffer */
 
 /**
- * A class to pack and unpack two's complement ints and unsigned ints.
+ * Read a string of UTF-8 characters from a byte buffer.
+ * Invalid characters are replaced with 'REPLACEMENT CHARACTER' (U+FFFD).
+ * @see https://encoding.spec.whatwg.org/#the-encoding
+ * @see https://stackoverflow.com/a/34926911
+ * @param {!Uint8Array|!Array<number>} buffer A byte buffer.
+ * @param {number=} start The buffer index to start reading.
+ * @param {?number=} end The buffer index to stop reading.
+ *   Assumes the buffer length if undefined.
+ * @return {string}
  */
-class Integer {
-
-  /**
-   * @param {number} bits Number of bits used by the data.
-   * @param {boolean} signed True for signed types.
-   * @throws {Error} if the number of bits is smaller than 1 or greater than 64.
-   */
-  constructor(bits, signed) {
-    /**
-     * The max number of bits used by the data.
-     * @type {number}
-     * @private
-     */
-    this.bits_ = bits;
-    /**
-     * The number of bytes used by the data.
-     * @type {number}
-     * @private
-     */
-    this.offset_ = 0;
-    /**
-     * The practical number of bits used by the data.
-     * @type {number}
-     * @private
-     */
-    this.realBits_ = this.bits_;
-    /**
-     * The mask to be used in the last byte.
-     * @type {number}
-     * @private
-     */
-    this.lastByteMask_ = 255;
-    // Set the min and max values according to the number of bits
+function unpack(buffer, start=0, end=buffer.length) {
+  /** @type {string} */
+  let str = "";
+  for(let index = start; index < end;) {
     /** @type {number} */
-    let max = Math.pow(2, this.bits_);
-    if (signed) {
-      this.max_ = max / 2 -1;
-      this.min_ = -max / 2;
-    } else {
-      this.max_ = max - 1;
-      this.min_ = 0;
-    }
-    this.build_();
-  }
-
-  /**
-   * Read one integer number from a byte buffer.
-   * @param {!Uint8Array} bytes An array of bytes.
-   * @param {number=} i The index to read.
-   * @return {number}
-   */
-  read(bytes, i=0) {
-    let num = 0;
-    for(let x=0; x<this.offset_; x++) {
-      num += bytes[i + x] * Math.pow(256, x);
-    }
-    return this.overflow_(this.sign_(num)); 
-  }
-
-  /**
-   * Write one integer number to a byte buffer.
-   * @param {!Array<number>} bytes An array of bytes.
-   * @param {number} num The number.
-   * @param {number=} j The index being written in the byte buffer.
-   * @return {number} The next index to write on the byte buffer.
-   * @private
-   */
-  write(bytes, num, j=0) {
-    j = this.writeFirstByte_(bytes, this.overflow_(num), j);
-    for (let i = 2; i < this.offset_; i++, j++) {
-      bytes[j] = Math.floor(num / Math.pow(2, ((i - 1) * 8))) & 255;
-    }
-    if (this.bits_ > 8) {
-      bytes[j] = Math.floor(
-          num / Math.pow(2, ((this.offset_ - 1) * 8))) & this.lastByteMask_;
-      j++;
-    }
-    return j;
-  }
-
-  /**
-   * Build the type.
-   * @throws {Error} if the number of bits is smaller than 1 or greater than 64.
-   * @private
-   */
-  build_() {
-    this.setRealBits_();
-    this.setLastByteMask_();
-    this.offset_ = this.bits_ < 8 ? 1 : Math.ceil(this.realBits_ / 8);
-  }
-
-  /**
-   * Sign a number.
-   * @param {number} num The number.
-   * @return {number}
-   * @private
-   */
-  sign_(num) {
-    if (num > this.max_) {
-      num -= (this.max_ * 2) + 2;
-    }
-    return num;
-  }
-
-  /**
-   * Trows error in case of underflow or overflow.
-   * @param {number} num The number.
-   * @return {number}
-   * @throws {Error} on overflow or underflow.
-   * @private
-   */
-  overflow_(num) {
-    if (num > this.max_) {
-      throw new Error('Overflow.');
-    } else if (num < this.min_) {
-      throw new Error('Underflow.');
-    }
-    return num;
-  }
-
-  /**
-   * Set the practical bit number for data with bit count different
-   * from the standard types (8, 16, 32, 40, 48, 64).
-   * @private
-   */
-  setRealBits_() {
-    this.realBits_ = ((this.bits_ - 1) | 7) + 1;
-  }
-
-  /**
-   * Set the mask that should be used when writing the last byte.
-   * @private
-   */
-  setLastByteMask_() {
+    let lowerBoundary = 0x80;
     /** @type {number} */
-    let r = 8 - (this.realBits_ - this.bits_);
-    this.lastByteMask_ = Math.pow(2, r > 0 ? r : 8) - 1;
-  }
-
-  /**
-   * Write the first byte of a integer number.
-   * @param {!Array<number>} bytes An array of bytes.
-   * @param {number} number The number.
-   * @param {number} j The index being written in the byte buffer.
-   * @return {number} The next index to write on the byte buffer.
-   * @private
-   */
-  writeFirstByte_(bytes, number, j) {
-    if (this.bits_ < 8) {
-      bytes[j] = number < 0 ? number + Math.pow(2, this.bits_) : number;
+    let upperBoundary = 0xBF;
+    /** @type {boolean} */
+    let replace = false;
+    /** @type {number} */
+    let charCode = buffer[index++];
+    if (charCode >= 0x00 && charCode <= 0x7F) {
+      str += String.fromCharCode(charCode);
     } else {
-      bytes[j] = number & 255;
+      /** @type {number} */
+      let count = 0;
+      if (charCode >= 0xC2 && charCode <= 0xDF) {
+        count = 1;
+      } else if (charCode >= 0xE0 && charCode <= 0xEF ) {
+        count = 2;
+        if (buffer[index] === 0xE0) {
+          lowerBoundary = 0xA0;
+        }
+        if (buffer[index] === 0xED) {
+          upperBoundary = 0x9F;
+        }
+      } else if (charCode >= 0xF0 && charCode <= 0xF4 ) {
+        count = 3;
+        if (buffer[index] === 0xF0) {
+          lowerBoundary = 0x90;
+        }
+        if (buffer[index] === 0xF4) {
+          upperBoundary = 0x8F;
+        }
+      } else {
+        replace = true;
+      }
+      charCode = charCode & (1 << (8 - count - 1)) - 1;
+      for (let i = 0; i < count; i++) {
+        if (buffer[index] < lowerBoundary || buffer[index] > upperBoundary) {
+          replace = true;
+        }
+        charCode = (charCode << 6) | (buffer[index] & 0x3f);
+        index++;
+      }
+      if (replace) {
+        str += String.fromCharCode(0xFFFD);
+      } 
+      else if (charCode <= 0xffff) {
+        str += String.fromCharCode(charCode);
+      } else {
+        charCode -= 0x10000;
+        str += String.fromCharCode(
+          ((charCode >> 10) & 0x3ff) + 0xd800,
+          (charCode & 0x3ff) + 0xdc00);
+      }
     }
-    return j + 1;
   }
+  return str;
+}
+
+/**
+ * Write a string of UTF-8 characters to a byte buffer.
+ * @see https://encoding.spec.whatwg.org/#utf-8-encoder
+ * @param {string} str The string to pack.
+ * @param {!Uint8Array|!Array<number>} buffer The buffer to pack the string to.
+ * @param {number=} index The buffer index to start writing.
+ * @return {number} The next index to write in the buffer.
+ */
+function pack(str, buffer, index=0) {
+  for (let i = 0, len = str.length; i < len; i++) {
+    /** @type {number} */
+    let codePoint = str.codePointAt(i);
+    if (codePoint < 128) {
+      buffer[index] = codePoint;
+      index++;
+    } else {
+      /** @type {number} */
+      let count = 0;
+      /** @type {number} */
+      let offset = 0;
+      if (codePoint <= 0x07FF) {
+        count = 1;
+        offset = 0xC0;
+      } else if(codePoint <= 0xFFFF) {
+        count = 2;
+        offset = 0xE0;
+      } else if(codePoint <= 0x10FFFF) {
+        count = 3;
+        offset = 0xF0;
+        i++;
+      }
+      buffer[index] = (codePoint >> (6 * count)) + offset;
+      index++;
+      while (count > 0) {
+        buffer[index] = 0x80 | (codePoint >> (6 * (count - 1)) & 0x3F);
+        index++;
+        count--;
+      }
+    }
+  }
+  return index;
 }
 
 /*
@@ -280,62 +242,505 @@ class Integer {
  * @see https://github.com/rochars/byte-data
  */
 
-function validateValueType(value) {
-  if (value !== null) {
-    if ([Number, Boolean].indexOf(value.constructor) == -1) {
-      throw new Error('Expected number, boolean or null; found ' + value.constructor);
-    }
+const TYPE_ERR = 'Unsupported type';
+
+/**
+ * Validate that the value is not null or undefined.
+ * @param {*} value The value.y.
+ * @throws {Error} If the value is not Number or Boolean.
+ * @throws {Error} If the value is NaN, Infinity or -Infinity.
+ */
+function validateIsInt(value) {
+  validateIsNumber(value);
+  if (value !== value || value === Infinity || value === -Infinity) {
+    throwValueErr_('integer');
   }
 }
 
 /**
  * Validate that the value is not null or undefined.
- * @param {number} value The value.
- * @throws {Error} If the value is of type undefined.
+ * @param {*} value The value.
+ * @throws {Error} If the value is not Number or Boolean.
  */
-function validateNotUndefined(value) {
-  if (value === undefined) {
-    throw new Error('Undefined value.');
+function validateIsNumber(value) {
+  if (value === undefined || value === null) {
+    throwValueErr_();
+  }
+  if (value.constructor != Number && value.constructor != Boolean) {
+    throwValueErr_();
   }
 }
 
 /**
- * Validate the type definition.
- * @param {!Object} theType The type definition.
- * @throws {Error} If the type definition is not valid.
- */
-function validateType(theType) {
-  if (!theType) {
-    throw new Error('Undefined type.');
-  }
-  if (theType.float) {
-    validateFloatType_(theType);
-  } else {
-    validateIntType_(theType);
-  }
-}
-
-/**
- * Validate the type definition of floating point numbers.
- * @param {!Object} theType The type definition.
+ * Validate the type definition of floating-point numbers.
+ * @param {number} bits The number of bits.
  * @throws {Error} If the type definition is not valid.
  * @private
  */
-function validateFloatType_(theType) {
-  if ([16,32,64].indexOf(theType.bits) == -1) {
-    throw new Error('Bad float type.');
+function validateFloatType(bits) {
+  if (!bits || bits !== 16 && bits !== 32 && bits !== 64) {
+    throw new Error(TYPE_ERR + ': float, bits: ' + bits);
   }
 }
 
 /**
  * Validate the type definition of integers.
- * @param {!Object} theType The type definition.
+ * @param {number} bits The number of bits.
  * @throws {Error} If the type definition is not valid.
  * @private
  */
-function validateIntType_(theType) {
-  if (theType.bits < 1 || theType.bits > 53) {
-    throw new Error('Bad type definition.');
+function validateIntType(bits) {
+  if (!bits || bits < 1 || bits > 53) {
+    throw new Error(TYPE_ERR + ': int, bits: ' + bits);
+  }
+}
+
+/**
+ * Throw a error about the input value.
+ * @param {string} theType The name of the type the value was expected to be.
+ * @throws {Error} Always when called.
+ * @private
+ */
+function throwValueErr_(theType='valid number') {
+  throw new Error('Argument is not a ' + theType);
+}
+
+/*
+ * Copyright (c) 2018 Rafael da Silva Rocha.
+ * Copyright (c) 2013 DeNA Co., Ltd.
+ * Copyright (c) 2010, Linden Research, Inc
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+/**
+ * @fileoverview Encode and decode IEEE 754 floating point numbers.
+ * @see https://github.com/rochars/ieee754-buffer
+ * @see https://bitbucket.org/lindenlab/llsd/raw/7d2646cd3f9b4c806e73aebc4b32bd81e4047fdc/js/typedarray.js
+ * @see https://github.com/kazuho/ieee754.js/blob/master/ieee754.js
+ */
+
+/** 
+ * @module IEEE754Buffer
+ * @ignore
+ */
+
+/**
+ * A class to encode and decode IEEE 754 floating-point numbers.
+ */
+class IEEE754Buffer {
+
+  /**
+   * Pack a IEEE 754 floating point number.
+   * @param {number} ebits The exponent bits.
+   * @param {number} fbits The fraction bits.
+   */
+  constructor(ebits, fbits) {
+    this.ebits = ebits;
+    this.fbits = fbits;
+    this.bias = (1 << (ebits - 1)) - 1;
+    this.numBytes = Math.ceil((ebits + fbits) / 8);
+    this.biasP2 = Math.pow(2, this.bias + 1);
+    this.ebitsFbits = (ebits + fbits);
+    this.fbias = Math.pow(2, -(8 * this.numBytes - 1 - ebits));
+  }
+
+  /**
+   * Pack a IEEE 754 floating point number.
+   * @param {!Uint8Array|!Array<number>} buffer The buffer.
+   * @param {number} num The number.
+   * @param {number} index The index to write on the buffer.
+   * @return {number} The next index to write on the buffer.
+   */
+  pack(buffer, num, index) {
+    // Round overflows
+    if (Math.abs(num) > this.biasP2 - (this.ebitsFbits * 2)) {
+      num = num < 0 ? -Infinity : Infinity;
+    }
+    /**
+     * sign, need this to handle negative zero
+     * @see http://cwestblog.com/2014/02/25/javascript-testing-for-negative-zero/
+     * @type {number}
+     */
+    let sign = (((num = +num) || 1 / num) < 0) ? 1 : num < 0 ? 1 : 0;
+    num = Math.abs(num);
+    /** @type {number} */
+    let exp = Math.min(Math.floor(Math.log(num) / Math.LN2), 1023);
+    /** @type {number} */
+    let fraction = this.roundToEven(num / Math.pow(2, exp) * Math.pow(2, this.fbits));
+    // NaN
+    if (num !== num) {
+      fraction = Math.pow(2, this.fbits - 1);
+      exp = (1 << this.ebits) - 1;
+    // Number
+    } else if (num !== 0) {
+      if (num >= Math.pow(2, 1 - this.bias)) {
+        if (fraction / Math.pow(2, this.fbits) >= 2) {
+          exp = exp + 1;
+          fraction = 1;
+        }
+        // Overflow
+        if (exp > this.bias) {
+          exp = (1 << this.ebits) - 1;
+          fraction = 0;
+        } else {
+          exp = exp + this.bias;
+          fraction = this.roundToEven(fraction) - Math.pow(2, this.fbits);
+        }
+      } else {
+        fraction = this.roundToEven(num / Math.pow(2, 1 - this.bias - this.fbits));
+        exp = 0;
+      } 
+    }
+    return this.packFloatBits_(buffer, index, sign, exp, fraction);
+  }
+
+  /**
+   * Unpack a IEEE 754 floating point number.
+   * Derived from IEEE754 by DeNA Co., Ltd., MIT License. 
+   * Adapted to handle NaN. Should port the solution to the original repo.
+   * @param {!Uint8Array|!Array<number>} buffer The buffer.
+   * @param {number} index The index to read from the buffer.
+   * @return {number} The floating point number.
+   */
+  unpack(buffer, index) {
+    /** @type {number} */
+    let eMax = (1 << this.ebits) - 1;
+    /** @type {number} */
+    let significand;
+    /** @type {string} */
+    let leftBits = "";
+    for (let i = this.numBytes - 1; i >= 0 ; i--) {
+      /** @type {string} */
+      let t = buffer[i + index].toString(2);
+      leftBits += "00000000".substring(t.length) + t;
+    }
+    /** @type {number} */
+    let sign = leftBits.charAt(0) == "1" ? -1 : 1;
+    leftBits = leftBits.substring(1);
+    /** @type {number} */
+    let exponent = parseInt(leftBits.substring(0, this.ebits), 2);
+    leftBits = leftBits.substring(this.ebits);
+    if (exponent == eMax) {
+      if (parseInt(leftBits, 2) !== 0) {
+        return NaN;
+      }
+      return sign * Infinity;  
+    } else if (exponent === 0) {
+      exponent += 1;
+      significand = parseInt(leftBits, 2);
+    } else {
+      significand = parseInt("1" + leftBits, 2);
+    }
+    return sign * significand * this.fbias * Math.pow(2, exponent - this.bias);
+  }
+
+  /**
+   * Pack a IEEE754 from its sign, exponent and fraction bits
+   * and place it in a byte buffer.
+   * @param {!Uint8Array|!Array<number>} buffer The byte buffer to write to.
+   * @param {number} index The buffer index to write.
+   * @param {number} sign The sign.
+   * @param {number} exp the exponent.
+   * @param {number} fraction The fraction.
+   * @return {number}
+   * @private
+   */
+  packFloatBits_(buffer, index, sign, exp, fraction) {
+    /** @type {!Array<number>} */
+    let bits = [];
+    // the sign
+    bits.push(sign);
+    // the exponent
+    for (let i = this.ebits; i > 0; i -= 1) {
+      bits[i] = (exp % 2 ? 1 : 0);
+      exp = Math.floor(exp / 2);
+    }
+    // the fraction
+    let len = bits.length;
+    for (let i = this.fbits; i > 0; i -= 1) {
+      bits[len + i] = (fraction % 2 ? 1 : 0);
+      fraction = Math.floor(fraction / 2);
+    }
+    // pack as bytes
+    /** @type {string} */
+    let str = bits.join('');
+    /** @type {number} */
+    let numBytes = this.numBytes + index - 1;
+    /** @type {number} */
+    let k = index;
+    while (numBytes >= index) {
+      buffer[numBytes] = parseInt(str.substring(0, 8), 2);
+      str = str.substring(8);
+      numBytes--;
+      k++;
+    }
+    return k;
+  }
+
+  roundToEven(n) {
+    var w = Math.floor(n), f = n - w;
+    if (f < 0.5) {
+      return w;
+    }
+    if (f > 0.5) {
+      return w + 1;
+    }
+    return w % 2 ? w + 1 : w;
+  }
+}
+
+/*
+ * Copyright (c) 2018 Rafael da Silva Rocha.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+/**
+ * @fileoverview Pack and unpack unsigned ints.
+ * @see https://github.com/rochars/uint-buffer
+ */
+
+/**
+ * @module UintBuffer
+ * @ignore
+ */
+
+/**
+ * A class to write and read unsigned ints to and from byte buffers.
+ */
+class UintBuffer {
+  
+  /**
+   * @param {number} bits The number of bits used by the integer.
+   */
+  constructor(bits) {
+    /**
+     * The number of bits used by one number.
+     * @type {number}
+     */
+    this.bits = bits;
+    /**
+     * The number of bytes used by one number.
+     * @type {number}
+     */
+    this.bytes = bits < 8 ? 1 : Math.ceil(bits / 8);
+    /**
+     * @type {number}
+     * @protected
+     */
+    this.max = Math.pow(2, bits) - 1;
+    /**
+     * @type {number}
+     * @protected
+     */
+    this.min = 0;
+    /** @type {number} */
+    let r = 8 - ((((bits - 1) | 7) + 1) - bits);
+    /**
+     * @type {number}
+     * @private
+     */
+    this.lastByteMask_ = Math.pow(2, r > 0 ? r : 8) - 1;
+  }
+
+  /**
+   * Write one unsigned integer to a byte buffer.
+   * @param {!Uint8Array|!Array<number>} buffer An array of bytes.
+   * @param {number} num The number.
+   * @param {number=} index The index being written in the byte buffer.
+   * @return {number} The next index to write on the byte buffer.
+   * @throws {Error} If num is NaN.
+   * @throws {Error} On overflow.
+   */
+  pack(buffer, num, index=0) {
+    if (num !== num) {
+      throw new Error('NaN');
+    }
+    this.overflow(num);
+    buffer[index] = (num < 0 ? num + Math.pow(2, this.bits) : num) & 255;
+    index++;
+    /** @type {number} */
+    let len = this.bytes;
+    for (let i = 2; i < len; i++) {
+      buffer[index] = Math.floor(num / Math.pow(2, ((i - 1) * 8))) & 255;
+      index++;
+    }
+    if (this.bits > 8) {
+      buffer[index] = Math.floor(
+          num / Math.pow(2, ((this.bytes - 1) * 8))) & this.lastByteMask_;
+      index++;
+    }
+    return index;
+  }
+  
+  /**
+   * Read one unsigned integer from a byte buffer.
+   * @param {!Uint8Array|!Array<number>} buffer An array of bytes.
+   * @param {number=} index The index to read.
+   * @return {number} The number.
+   * @throws {Error} On overflow.
+   */
+  unpack(buffer, index=0) {
+    /** @type {number} */
+    let num = this.unpackUnsafe(buffer, index);
+    this.overflow(num);
+    return num; 
+  }
+
+  /**
+   * Read one unsigned integer from a byte buffer.
+   * Does not check for overflows.
+   * @param {!Uint8Array|!Array<number>} buffer An array of bytes.
+   * @param {number} index The index to read.
+   * @return {number}
+   * @protected
+   */
+  unpackUnsafe(buffer, index) {
+    /** @type {number} */
+    let num = 0;
+    for(let x = 0; x < this.bytes; x++) {
+      num += buffer[index + x] * Math.pow(256, x);
+    }
+    return num;
+  }
+
+  /**
+   * Throws error in case of overflow.
+   * @param {number} num The number.
+   * @throws {Error} on overflow.
+   * @protected
+   */
+  overflow(num) {
+    if (num > this.max || num < this.min) {
+      throw new Error('Overflow');
+    }
+  }
+}
+
+/*
+ * Copyright (c) 2018 Rafael da Silva Rocha.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+/**
+ * A class to write and read two's complement signed integers
+ * to and from byte buffers.
+ * @extends UintBuffer
+ */
+class TwosComplementBuffer extends UintBuffer {
+  
+  /**
+   * @param {number} bits The number of bits used by the integer.
+   */
+  constructor(bits) {
+    super(bits);
+    /**
+     * @type {number}
+     * @protected
+     */
+    this.max = Math.pow(2, this.bits) / 2 - 1;
+    /**
+     * @type {number}
+     * @protected
+     */
+    this.min = -this.max - 1;
+  }
+
+  /**
+   * Write one two's complement signed integer to a byte buffer.
+   * @param {!Uint8Array|!Array<number>} buffer An array of bytes.
+   * @param {number} num The number.
+   * @param {number=} index The index being written in the byte buffer.
+   * @return {number} The next index to write on the byte buffer.
+   * @throws {Error} If num is NaN.
+   * @throws {Error} On overflow.
+   */
+  pack(buffer, num, index=0) {
+    return super.pack(buffer, num, index);
+  }
+
+  /**
+   * Read one two's complement signed integer from a byte buffer.
+   * @param {!Uint8Array|!Array<number>} buffer An array of bytes.
+   * @param {number=} index The index to read.
+   * @return {number}
+   * @throws {Error} On overflow.
+   */
+  unpack(buffer, index=0) {
+    /** @type {number} */
+    let num = super.unpackUnsafe(buffer, index);
+    num = this.sign_(num);
+    this.overflow(num);
+    return num; 
+  }
+
+  /**
+   * Sign a number.
+   * @param {number} num The number.
+   * @return {number}
+   * @private
+   */
+  sign_(num) {
+    if (num > this.max) {
+      num -= (this.max * 2) + 2;
+    }
+    return num;
   }
 }
 
@@ -364,261 +769,72 @@ function validateIntType_(theType) {
  */
 
 /**
- * Use a Typed Array to check if the host is BE or LE. This will impact
- * on how 64-bit floating point numbers are handled.
- * @type {boolean}
- * @private
+ * A class to pack and unpack integers and floating-point numbers.
+ * Signed integers are two's complement.
+ * Floating-point numbers are IEEE 754 standard.
  */
-const BE_ENV = new Uint8Array(new Uint32Array([1]).buffer)[0] === 0;
-/**
- * @type {number}
- * @private
- */
-const HIGH = BE_ENV ? 1 : 0;
-/**
- * @type {number}
- * @private
- */
-const LOW = BE_ENV ? 0 : 1;
-/**
- * @type {!Int8Array}
- * @private
- */
-let int8_ = new Int8Array(8);
-/**
- * @type {!Uint32Array}
- * @private
- */
-let ui32_ = new Uint32Array(int8_.buffer);
-/**
- * @type {!Float32Array}
- * @private
- */
-let f32_ = new Float32Array(int8_.buffer);
-/**
- * @type {!Float64Array}
- * @private
- */
-let f64_ = new Float64Array(int8_.buffer);
-/**
- * @type {Function}
- * @private
- */
-let reader_;
-/**
- * @type {Function}
- * @private
- */
-let writer_;
-/**
- * @type {Object}
- * @private
- */
-let gInt_ = {};
-
-/**
- * Validate the type and set up the packing/unpacking functions.
- * @param {!Object} theType The type definition.
- * @throws {Error} If the type definition is not valid.
- * @private
- */
-function setUp_(theType) {
-  validateType(theType);
-  theType.offset = theType.bits < 8 ? 1 : Math.ceil(theType.bits / 8);
-  setReader(theType);
-  setWriter(theType);
-  gInt_ = new Integer(
-    theType.bits == 64 ? 32 : theType.bits,
-    theType.float ? false : theType.signed);
-}
-
-/**
- * Turn numbers to bytes.
- * @param {number} value The value to be packed.
- * @param {!Object} theType The type definition.
- * @param {!Uint8Array|!Array<number>} buffer The buffer to write the bytes to.
- * @param {number} index The index to start writing.
- * @param {number} len The end index.
- * @return {number} the new index to be written.
- * @private
- */
-function writeBytes_(value, theType, buffer, index, len) {
-  validateNotUndefined(value);
-  validateValueType(value);
-  while (index < len) {
-    index = writer_(buffer, value, index);
-  }
-  if (theType.be) {
-    endianness(
-      buffer, theType.offset, index - theType.offset, index);
-  }
-  return index;
-}
-
-/**
- * Read int values from bytes.
- * @param {!Uint8Array} bytes An array of bytes.
- * @param {number} i The index to read.
- * @return {number}
- * @private
- */
-function readInt_(bytes, i) {
-  return gInt_.read(bytes, i);
-}
-
-/**
- * Read 1 16-bit float from bytes.
- * Thanks https://stackoverflow.com/a/8796597
- * @param {!Uint8Array} bytes An array of bytes.
- * @param {number} i The index to read.
- * @return {number}
- * @private
- */
-function read16F_(bytes, i) {
-  /** @type {number} */
-  let int = gInt_.read(bytes, i);
-  /** @type {number} */
-  let exponent = (int & 0x7C00) >> 10;
-  /** @type {number} */
-  let fraction = int & 0x03FF;
-  /** @type {number} */
-  let floatValue;
-  if (exponent) {
-    floatValue =  Math.pow(2, exponent - 15) * (1 + fraction / 0x400);
-  } else {
-    floatValue = 6.103515625e-5 * (fraction / 0x400);
-  }
-  return floatValue * (int >> 15 ? -1 : 1);
-}
-
-/**
- * Read 1 32-bit float from bytes.
- * @param {!Uint8Array} bytes An array of bytes.
- * @param {number} i The index to read.
- * @return {number}
- * @private
- */
-function read32F_(bytes, i) {
-  ui32_[0] = gInt_.read(bytes, i);
-  return f32_[0];
-}
-
-/**
- * Read 1 64-bit float from bytes.
- * Thanks https://gist.github.com/kg/2192799
- * @param {!Uint8Array} bytes An array of bytes.
- * @param {number} i The index to read.
- * @return {number}
- * @private
- */
-function read64F_(bytes, i) {
-  ui32_[HIGH] = gInt_.read(bytes, i);
-  ui32_[LOW] = gInt_.read(bytes, i + 4);
-  return f64_[0];
-}
-
-/**
- * Write a integer value to a byte buffer.
- * @param {!Uint8Array} bytes An array of bytes.
- * @param {number} number The number to write as bytes.
- * @param {number} j The index being written in the byte buffer.
- * @return {!number} The next index to write on the byte buffer.
- * @private
- */
-function writeInt_(bytes, number, j) {
-  return gInt_.write(bytes, number, j);
-}
-
-/**
- * Write one 16-bit float as a binary value.
- * @param {!Uint8Array} bytes An array of bytes.
- * @param {number} number The number to write as bytes.
- * @param {number} j The index being written in the byte buffer.
- * @return {number} The next index to write on the byte buffer.
- * @private
- */
-function write16F_(bytes, number, j) {
-  f32_[0] = number;
-  /** @type {number} */
-  let x = ui32_[0];
-  /** @type {number} */
-  let bits = (x >> 16) & 0x8000;
-  /** @type {number} */
-  let m = (x >> 12) & 0x07ff;
-  /** @type {number} */
-  let e = (x >> 23) & 0xff;
-  if (e >= 103) {
-    bits |= ((e - 112) << 10) | (m >> 1);
-    bits += m & 1;
-  }
-  bytes[j++] = bits & 0xFF;
-  bytes[j++] = bits >>> 8 & 0xFF;
-  return j;
-}
-
-/**
- * Write one 32-bit float as a binary value.
- * @param {!Uint8Array} bytes An array of bytes.
- * @param {number} number The number to write as bytes.
- * @param {number} j The index being written in the byte buffer.
- * @return {number} The next index to write on the byte buffer.
- * @private
- */
-function write32F_(bytes, number, j) {
-  f32_[0] = number;
-  return gInt_.write(bytes, ui32_[0], j);
-}
-
-/**
- * Write one 64-bit float as a binary value.
- * @param {!Uint8Array} bytes An array of bytes.
- * @param {number} number The number to write as bytes.
- * @param {number} j The index being written in the byte buffer.
- * @return {number} The next index to write on the byte buffer.
- * @private
- */
-function write64F_(bytes, number, j) {
-  f64_[0] = number;
-  j = gInt_.write(bytes, ui32_[HIGH], j);
-  return gInt_.write(bytes, ui32_[LOW], j);
-}
-
-/**
- * Set the function to unpack the data.
- * @param {!Object} theType The type definition.
- * @private
- */
-function setReader(theType) {
-  if (theType.float) {
-    if (theType.bits == 16) {
-      reader_ = read16F_;
-    } else if(theType.bits == 32) {
-      reader_ = read32F_;
+class NumberBuffer {
+  
+  /**
+   * Read one number from a byte buffer.
+   * @param {number} bits The number of bits of the number.
+   * @param {boolean} fp Tue for floating-point numbers.
+   * @param {boolean} signed True for signed numbers.
+   * @throws {Error} If the type definition is not valid.
+   */
+  constructor(bits, fp, signed) {
+    /** @type {TwosComplementBuffer|UintBuffer|IEEE754Buffer} */
+    this.parser = null;
+    if (fp) {
+      validateFloatType(bits);
+      this.parser = this.getFPParser_(bits);
     } else {
-      reader_ = read64F_;
+      validateIntType(bits);
+      this.parser = signed ?
+        new TwosComplementBuffer(bits) : new UintBuffer(bits);
+      this.parser.bytes = this.parser.bytes === 8 ? 4 : this.parser.bytes;
     }
-  } else {
-    reader_ = readInt_;
   }
-}
 
-/**
- * Set the function to pack the data.
- * @param {!Object} theType The type definition.
- * @private
- */
-function setWriter(theType) {
-  if (theType.float) {
-    if (theType.bits == 16) {
-      writer_ = write16F_;
-    } else if(theType.bits == 32) {
-      writer_ = write32F_;
+  /**
+   * Read one number from a byte buffer.
+   * @param {!Uint8Array|!Array<number>} buffer An array of bytes.
+   * @param {number=} index The index to read.
+   * @return {number} The number.
+   * @throws {Error} On overflow.
+   */
+  unpack(buffer, index=0) {
+    return this.parser.unpack(buffer, index);
+  }
+
+  /**
+   * Write one number to a byte buffer.
+   * @param {!Uint8Array|!Array<number>} buffer An array of bytes.
+   * @param {number} num The number.
+   * @param {number=} index The index being written in the byte buffer.
+   * @return {number} The next index to write on the byte buffer.
+   * @throws {Error} If num is NaN.
+   * @throws {Error} On overflow.
+   */
+  pack(buffer, num, index=0) {
+    return this.parser.pack(buffer, num, index);
+  }
+
+  /**
+   * Return a instance of IEEE754Buffer.
+   * @param {number} bits The number of bits.
+   * @return {IEEE754Buffer}
+   * @private
+   */
+  getFPParser_(bits) {
+    if (bits === 16) {
+      return new IEEE754Buffer(5, 11);
+    } else if(bits === 32) {
+      return new IEEE754Buffer(8, 23);
     } else {
-      writer_ = write64F_;
+      return new IEEE754Buffer(11, 52);
     }
-  } else {
-    writer_ = writeInt_;
-  }   
+  }
 }
 
 /*
@@ -647,106 +863,54 @@ function setWriter(theType) {
 
 /**
  * Read a string of UTF-8 characters from a byte buffer.
- * @see https://encoding.spec.whatwg.org/#the-encoding
- * @see https://stackoverflow.com/a/34926911
- * @param {!Uint8Array|!Array<!number>} buffer A byte buffer.
- * @param {number=} index The index to read.
- * @param {?number=} len The number of bytes to read.
+ * @param {!Uint8Array|!Array<number>} buffer A byte buffer.
+ * @param {number=} index The buffer index to start reading.
+ * @param {number=} end The buffer index to stop reading, non inclusive.
+ *   Assumes buffer length if undefined.
  * @return {string}
- * @throws {Error} If read a value that is not UTF-8.
  */
-function unpackString(buffer, index=0, len=null) {
-  len = len !== null ? index + len : buffer.length;
-  /** @type {string} */
-  let str = "";
-  while(index < len) {
-    /** @type {number} */
-    let charCode = buffer[index++];
-    if (charCode >> 7 === 0) {
-      str += String.fromCharCode(charCode);
-    } else {
-      /** @type {number} */
-      let count = 0;
-      if (charCode >> 5 === 0x06) {
-        count = 1;
-      } else if (charCode >> 4 === 0x0e) {
-        count = 2;
-      } else if (charCode >> 3 === 0x1e) {
-        count = 3;
-      }
-      charCode = charCode & (1 << (8 - count - 1)) - 1;
-      for (let i = 0; i < count; i++) {
-        charCode = (charCode << 6) | (buffer[index++] & 0x3f);
-      }
-      if (charCode <= 0xffff) {
-        str += String.fromCharCode(charCode);
-      } else {
-        charCode -= 0x10000;
-        str += String.fromCharCode(
-          ((charCode >> 10) & 0x3ff) + 0xd800,
-          (charCode & 0x3ff) + 0xdc00);
-      }
-    }
-  }
-  return str;
+function unpackString(buffer, index=0, end=buffer.length) {
+  return unpack(buffer, index, end);
 }
 
 /**
  * Write a string of UTF-8 characters as a byte buffer.
- * @see https://encoding.spec.whatwg.org/#utf-8-encoder
  * @param {string} str The string to pack.
- * @return {!Array<number>} The next index to write on the buffer.
- * @throws {Error} If a character in the string is not UTF-8.
- */
+ * @return {!Array<number>} The UTF-8 string bytes.
+ */ 
 function packString(str) {
-  /** @type {!Array<!number>} */
-  let bytes = [];
-  for (let i = 0; i < str.length; i++) {
-    /** @type {number} */
-    let codePoint = str.codePointAt(i);
-    if (codePoint < 128) {
-      bytes.push(codePoint);
-    } else {
-      /** @type {number} */
-      let count = 0;
-      /** @type {number} */
-      let offset = 0;
-      if (codePoint <= 0x07FF) {
-        count = 1;
-        offset = 0xC0;
-      } else if(codePoint <= 0xFFFF) {
-        count = 2;
-        offset = 0xE0;
-      } else if(codePoint <= 0x10FFFF) {
-        count = 3;
-        offset = 0xF0;
-        i++;
-      }
-      bytes.push((codePoint >> (6 * count)) + offset);
-      while (count > 0) {
-        bytes.push(0x80 | (codePoint >> (6 * (count - 1)) & 0x3F));
-        count--;
-      }
-    }
-  }
-  return bytes;
+  /** @type {!Array<number>} */
+  let buffer = [];
+  pack(str, buffer, 0);
+  return buffer;
 }
 
 /**
  * Write a string of UTF-8 characters to a byte buffer.
  * @param {string} str The string to pack.
  * @param {!Uint8Array|!Array<number>} buffer The output buffer.
- * @param {number=} index The index to write in the buffer.
+ * @param {number=} index The buffer index to start writing.
+ *   Assumes zero if undefined.
  * @return {number} The next index to write in the buffer.
- * @throws {Error} If a character in the string is not valid ASCII.
  */
 function packStringTo(str, buffer, index=0) {
-  /** @type {!Array<!number>} */
-  let bytes = packString(str);
-  for (let i = 0; i < bytes.length; i++) {
-    buffer[index++] = bytes[i];
-  }
-  return index;
+  return pack(str, buffer, index);
+}
+
+// Numbers
+/**
+ * Pack a number as a byte buffer.
+ * @param {number} value The number.
+ * @param {!Object} theType The type definition.
+ * @return {!Array<number>} The packed value.
+ * @throws {Error} If the type definition is not valid.
+ * @throws {Error} If the value is not valid.
+ */
+function pack$1(value, theType) {
+  /** @type {!Array<number>} */
+  let output = [];
+  packTo(value, theType, output);
+  return output;
 }
 
 /**
@@ -754,42 +918,173 @@ function packStringTo(str, buffer, index=0) {
  * @param {number} value The value.
  * @param {!Object} theType The type definition.
  * @param {!Uint8Array|!Array<number>} buffer The output buffer.
- * @param {number=} index The index to write.
+ * @param {number=} index The buffer index to write. Assumes 0 if undefined.
  * @return {number} The next index to write.
  * @throws {Error} If the type definition is not valid.
  * @throws {Error} If the value is not valid.
  */
 function packTo(value, theType, buffer, index=0) {
-  setUp_(theType);
-  return writeBytes_(value,
-    theType,
-    buffer,
-    index,
-    index + theType.offset);
+  return packArrayTo([value], theType, buffer, index);
+}
+
+/**
+ * Pack an array of numbers as a byte buffer.
+ * @param {!Array<number>|!TypedArray} values The values.
+ * @param {!Object} theType The type definition.
+ * @return {!Array<number>} The packed values.
+ * @throws {Error} If the type definition is not valid.
+ * @throws {Error} If any of the values are not valid.
+ */
+function packArray(values, theType) {
+  /** @type {!Array<number>} */
+  let output = [];
+  packArrayTo(values, theType, output);
+  return output;
+}
+
+/**
+ * Pack a array of numbers to a byte buffer.
+ * @param {!Array<number>|!TypedArray} values The value.
+ * @param {!Object} theType The type definition.
+ * @param {!Uint8Array|!Array<number>} buffer The output buffer.
+ * @param {number=} index The buffer index to start writing.
+ *   Assumes zero if undefined.
+ * @return {number} The next index to write.
+ * @throws {Error} If the type definition is not valid.
+ * @throws {Error} If the value is not valid.
+ */
+function packArrayTo(values, theType, buffer, index=0) {
+  theType = theType || {};
+  /** @type {NumberBuffer} */
+  let packer = new NumberBuffer(
+    theType.bits, theType.fp, theType.signed);
+  /** @type {number} */
+  let offset = offset_(theType.bits);
+  /** @type {Function} */
+  let validateInput = theType.fp ? validateIsNumber : validateIsInt;
+  /** @type {number} */
+  let i = 0;
+  try {
+    for (let valuesLen = values.length; i < valuesLen; i++) {
+      validateInput(values[i]);
+      /** @type {number} */
+      let len = index + offset;
+      while (index < len) {
+        index = packer.pack(buffer, values[i], index);
+      }
+      swap_(theType.be, buffer, offset, index - offset, index);
+    }
+  } catch (e) {
+    throw new Error(e.message + ' at input index ' + i);
+  }
+  return index;
 }
 
 /**
  * Unpack a number from a byte buffer.
- * @param {!Uint8Array|!Array<!number>} buffer The byte buffer.
+ * @param {!Uint8Array|!Array<number>} buffer The byte buffer.
  * @param {!Object} theType The type definition.
- * @param {number=} index The buffer index to read.
- * @return {number|undefined}
+ * @param {number=} index The buffer index to read. Assumes zero if undefined.
+ * @return {number}
  * @throws {Error} If the type definition is not valid
+ * @throws {Error} On bad buffer length.
+ * @throws {Error} On overflow
  */
-function unpack(buffer, theType, index=0) {
-  setUp_(theType);
-  if ((theType.offset + index) > buffer.length) {
-    throw Error('Bad buffer length.');
-  }
-  if (theType.be) {
-    endianness(buffer, theType.offset, index, index + theType.offset);
-  }
+function unpack$1(buffer, theType, index=0) {
+  return unpackArray(
+    buffer, theType, index, index + offset_(theType.bits), true)[0];
+}
+
+/**
+ * Unpack an array of numbers from a byte buffer.
+ * @param {!Uint8Array|!Array<number>} buffer The byte buffer.
+ * @param {!Object} theType The type definition.
+ * @param {number=} start The buffer index to start reading.
+ *   Assumes zero if undefined.
+ * @param {number=} end The buffer index to stop reading.
+ *   Assumes the buffer length if undefined.
+ * @param {boolean=} safe If set to false, extra bytes in the end of
+ *   the array are ignored and input buffers with insufficient bytes will
+ *   output a empty array. If safe is set to true the function
+ *   will throw a 'Bad buffer length' error. Defaults to false.
+ * @return {!Array<number>}
+ * @throws {Error} If the type definition is not valid
+ * @throws {Error} On overflow
+ */
+function unpackArray(
+    buffer, theType, start=0, end=buffer.length, safe=false) {
+  /** @type {!Array<number>} */
+  let output = [];
+  unpackArrayTo(buffer, theType, output, start, end, safe);
+  return output;
+}
+
+/**
+ * Unpack a array of numbers to a typed array.
+ * @param {!Uint8Array|!Array<number>} buffer The byte buffer.
+ * @param {!Object} theType The type definition.
+ * @param {!TypedArray|!Array<number>} output The output array.
+ * @param {number=} start The buffer index to start reading.
+ *   Assumes zero if undefined.
+ * @param {number=} end The buffer index to stop reading.
+ *   Assumes the buffer length if undefined.
+ * @param {boolean=} safe If set to false, extra bytes in the end of
+ *   the array are ignored and input buffers with insufficient bytes will
+ *   write nothing to the output array. If safe is set to true the function
+ *   will throw a 'Bad buffer length' error. Defaults to false.
+ * @throws {Error} If the type definition is not valid
+ * @throws {Error} On overflow
+ */
+function unpackArrayTo(
+    buffer, theType, output, start=0, end=buffer.length, safe=false) {
+  theType = theType || {};
+  /** @type {NumberBuffer} */
+  let packer = new NumberBuffer(
+    theType.bits, theType.fp, theType.signed);
   /** @type {number} */
-  let value = reader_(buffer, index);
-  if (theType.be) {
-    endianness(buffer, theType.offset, index, index + theType.offset);
+  let offset = offset_(theType.bits);
+  /** @type {number} */
+  let extra = (end - start) % offset;
+  if (safe && (extra || buffer.length < offset)) {
+    throw new Error('Bad buffer length');
   }
-  return value;
+  end -= extra;
+  /** @type {number} */
+  let i = 0;
+  try {
+    swap_(theType.be, buffer, offset, start, end);
+    for (let j = start; j < end; j += offset, i++) {
+      output[i] = packer.unpack(buffer, j);
+    }
+    swap_(theType.be, buffer, offset, start, end);
+  } catch (e) {
+    throw new Error(e.message + ' at output index ' + i);
+  }
+}
+
+/**
+ * Swap endianness in a slice of an array when flip == true.
+ * @param {boolean} flip True if should swap endianness.
+ * @param {!Uint8Array|!Array<number>} buffer The buffer.
+ * @param {number} offset The number of bytes each value use.
+ * @param {number} start The buffer index to start the swap.
+ * @param {number} end The buffer index to end the swap.
+ * @throws {Error} On bad buffer length for the swap.
+ * @private
+ */
+function swap_(flip, buffer, offset, start, end) {
+  if (flip) {
+    endianness(buffer, offset, start, end);
+  }
+}
+
+/**
+ * Get the byte offset of a type based on its number of bits.
+ * @param {number} bits The number of bits.
+ * @private
+ */
+function offset_(bits) {
+  return bits < 8 ? 1 : Math.ceil(bits / 8);
 }
 
 /*
@@ -817,120 +1112,146 @@ function unpack(buffer, theType, index=0) {
  */
 
 /**
- * @type {string}
- * @private
+ * Read a string of UTF-8 characters from a byte buffer.
+ * @param {!Uint8Array|!Array<number>} buffer A byte buffer.
+ * @param {number=} index The buffer index to start reading.
+ * @param {number=} end The buffer index to stop reading, non inclusive.
+ *   Assumes buffer length if undefined.
+ * @return {string}
  */
-const RANGE_EROR = "Range error";
-
-/**
- * A class to read and write to buffers.
- */
-class MiniBuffer {
-  
-  constructor() {
-    /**
-     * @type {number}
-     */
-    this.head = 0;
-  }
-
-  /**
-   * Set the MiniBuffer head to zero.
-   */
-  clear() {
-    this.head = 0;
-  }
-
-  /**
-   * Read a number from a buffer.
-   * @param {!Uint8Array} buffer The buffer.
-   * @param {!Object} typeDefinition The type definition.
-   * @param {?number=} index The index to read.
-   * @return {number|undefined} The number.
-   * @throws {Error} If word size + index > buffer.length
-   */
-  read(buffer, typeDefinition, index=null) {
-    index = index === null ? this.head : index;
-    /** @type {number} */
-    let size = typeDefinition.bits / 8;
-    if (index + size > buffer.length) {
-      throw new Error(RANGE_EROR);
-    }
-    /** @type {number|undefined} */
-    let num = unpack(buffer, typeDefinition, index);
-    this.head = size + index;
-    return num;
-  }
-
-  /**
-   * Write a number to a buffer.
-   * @param {!Uint8Array} buffer The buffer.
-   * @param {!Object} typeDefinition The type definition.
-   * @param {number} num The number to write.
-   * @param {?number=} index The buffer index to write.
-   * @throws {Error} If word size + index > buffer.length
-   */
-  write(buffer, typeDefinition, num, index=null) {
-    index = index === null ? this.head : index;
-    /** @type {number} */
-    let size = typeDefinition.bits / 8;
-    if (index + size > buffer.length) {
-      throw new Error(RANGE_EROR);
-    }
-    this.head = packTo(num, typeDefinition, buffer, index);
-  }
-
-  /**
-   * Read a UTF-8 string from a buffer.
-   * @param {!Uint8Array} buffer The buffer.
-   * @param {number} size the max size of the string.
-   * @param {?number=} index The buffer index to read.
-   * @return {string} The string.
-   * @throws {Error} If size + index > buffer.length
-   */
-  readStr(buffer, size, index=null) {
-    index = index === null ? this.head : index;
-    size = index + size;
-    let zstr = size === -1 ? true : false;
-    size = zstr ? buffer.length : size;
-    if (size > buffer.length) {
-      throw new Error(RANGE_EROR);
-    }
-    /** @type {string} */
-    let str = '';
-    for (; index<size; index++) {
-      if (buffer[index] === 0) {
-        break;
-      }
-      str += unpackString(buffer, index, 1);
-    }
-    this.head = index;
-    return str;
-  }
-
-  /**
-   * Write a UTF-8 string to a buffer. If the string is smaller
-   * than the max size the output buffer is filled with 0s.
-   * @param {!Uint8Array} buffer The buffer.
-   * @param {string} str The string to be written as bytes.
-   * @param {number=} size The size of the string.
-   * @param {?number=} index The buffer index to write.
-   * @throws {Error} If size + index > buffer.length
-   */
-  writeStr(buffer, str, size=str.length, index=null) {
-    index = index === null ? this.head : index;
-    /** @type {number} */
-    let limit = index + size;
-    if (limit > buffer.length) {
-      throw new Error(RANGE_EROR);
-    }
-    this.head = packStringTo(str, buffer, index);
-    if (this.head < index + size) {
-      for (; this.head<limit; this.head++) {
-        buffer[this.head] = 0;
-      }
-    }
-  }
+function unpackString$1(buffer, index=0, end=buffer.length) {
+  return unpackString(buffer, index, end);
 }
 
-export default MiniBuffer;
+/**
+ * Write a string of UTF-8 characters as a byte buffer.
+ * @param {string} str The string to pack.
+ * @return {!Array<number>} The UTF-8 string bytes.
+ */ 
+function packString$1(str) {
+  return packString(str);
+}
+
+/**
+ * Write a string of UTF-8 characters to a byte buffer.
+ * @param {string} str The string to pack.
+ * @param {!Uint8Array|!Array<number>} buffer The output buffer.
+ * @param {number=} index The buffer index to start writing.
+ *   Assumes zero if undefined.
+ * @return {number} The next index to write in the buffer.
+ */
+function packStringTo$1(str, buffer, index=0) {
+  return packStringTo(str, buffer, index);
+}
+
+// Numbers
+/**
+ * Pack a number as a byte buffer.
+ * @param {number} value The number.
+ * @param {!Object} theType The type definition.
+ * @return {!Array<number>} The packed value.
+ * @throws {Error} If the type definition is not valid.
+ * @throws {Error} If the value is not valid.
+ */
+function pack$2(value, theType) {
+  return pack$1(value, theType);
+}
+
+/**
+ * Pack a number to a byte buffer.
+ * @param {number} value The value.
+ * @param {!Object} theType The type definition.
+ * @param {!Uint8Array|!Array<number>} buffer The output buffer.
+ * @param {number=} index The buffer index to write. Assumes 0 if undefined.
+ * @return {number} The next index to write.
+ * @throws {Error} If the type definition is not valid.
+ * @throws {Error} If the value is not valid.
+ */
+function packTo$1(value, theType, buffer, index=0) {
+  return packTo(value, theType, buffer, index);
+}
+
+/**
+ * Pack an array of numbers as a byte buffer.
+ * @param {!Array<number>|!TypedArray} values The values.
+ * @param {!Object} theType The type definition.
+ * @return {!Array<number>} The packed values.
+ * @throws {Error} If the type definition is not valid.
+ * @throws {Error} If any of the values are not valid.
+ */
+function packArray$1(values, theType) {
+  return packArray(values, theType);
+}
+
+/**
+ * Pack a array of numbers to a byte buffer.
+ * @param {!Array<number>|!TypedArray} values The value.
+ * @param {!Object} theType The type definition.
+ * @param {!Uint8Array|!Array<number>} buffer The output buffer.
+ * @param {number=} index The buffer index to start writing.
+ *   Assumes zero if undefined.
+ * @return {number} The next index to write.
+ * @throws {Error} If the type definition is not valid.
+ * @throws {Error} If the value is not valid.
+ */
+function packArrayTo$1(values, theType, buffer, index=0) {
+  return packArrayTo(values, theType, buffer, index);
+}
+
+/**
+ * Unpack a number from a byte buffer.
+ * @param {!Uint8Array|!Array<number>} buffer The byte buffer.
+ * @param {!Object} theType The type definition.
+ * @param {number=} index The buffer index to read. Assumes zero if undefined.
+ * @return {number}
+ * @throws {Error} If the type definition is not valid
+ * @throws {Error} On bad buffer length.
+ * @throws {Error} On overflow
+ */
+function unpack$2(buffer, theType, index=0) {
+  return unpack$1(buffer, theType, index);
+}
+
+/**
+ * Unpack an array of numbers from a byte buffer.
+ * @param {!Uint8Array|!Array<number>} buffer The byte buffer.
+ * @param {!Object} theType The type definition.
+ * @param {number=} start The buffer index to start reading.
+ *   Assumes zero if undefined.
+ * @param {number=} end The buffer index to stop reading.
+ *   Assumes the buffer length if undefined.
+ * @param {boolean=} safe If set to false, extra bytes in the end of
+ *   the array are ignored and input buffers with insufficient bytes will
+ *   output a empty array. If safe is set to true the function
+ *   will throw a 'Bad buffer length' error. Defaults to false.
+ * @return {!Array<number>}
+ * @throws {Error} If the type definition is not valid
+ * @throws {Error} On overflow
+ */
+function unpackArray$1(
+    buffer, theType, start=0, end=buffer.length, safe=false) {
+  return unpackArray(buffer, theType, start, end, safe);
+}
+
+/**
+ * Unpack a array of numbers to a typed array.
+ * @param {!Uint8Array|!Array<number>} buffer The byte buffer.
+ * @param {!Object} theType The type definition.
+ * @param {!TypedArray|!Array<number>} output The output array.
+ * @param {number=} start The buffer index to start reading.
+ *   Assumes zero if undefined.
+ * @param {number=} end The buffer index to stop reading.
+ *   Assumes the buffer length if undefined.
+ * @param {boolean=} safe If set to false, extra bytes in the end of
+ *   the array are ignored and input buffers with insufficient bytes will
+ *   write nothing to the output array. If safe is set to true the function
+ *   will throw a 'Bad buffer length' error. Defaults to false.
+ * @throws {Error} If the type definition is not valid
+ * @throws {Error} On overflow
+ */
+function unpackArrayTo$1(
+    buffer, theType, output, start=0, end=buffer.length, safe=false) {
+  unpackArrayTo(buffer, theType, output, start, end, safe);
+}
+
+export { unpackString$1 as unpackString, packString$1 as packString, packStringTo$1 as packStringTo, pack$2 as pack, packTo$1 as packTo, packArray$1 as packArray, packArrayTo$1 as packArrayTo, unpack$2 as unpack, unpackArray$1 as unpackArray, unpackArrayTo$1 as unpackArrayTo };

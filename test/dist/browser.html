@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>minibuffer: browser tests</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="browser-runtime/mocha.css" rel="stylesheet" />
+    <link rel="stylesheet" href="browser-runtime/bootstrap.min.css">
+</head>
+<body>
+
+	<div class="container">
+		<h1><a href="https://github.com/rochars/minibuffer">minibuffer</a></h1>
+		<p>Pack and unpack binary data.<br>
+			Copyright (c) 2018 Rafael da Silva Rocha.<br>
+			<a href="https://github.com/rochars/minibuffer">https://github.com/rochars/minibuffer</a></p>
+	</div>
+
+	<!-- load shims -->
+	<script src="browser-runtime/shims.js"></script>
+
+	<!-- Load Mocha -->
+	<div class="container">
+		<div id="mocha"></div>
+	</div>
+	<script src="browser-runtime/assert.js"></script>
+	<script src="browser-runtime/mocha.js"></script>
+	<script>mocha.setup('bdd');</script>
+
+	<!-- Load UMD, load types -->
+	<script src="../../dist/minibuffer.umd.js"></script>
+
+	<!-- Load the tests -->
+	<script src="../src/binary16.js"></script>
+	<script src="../src/binary32.js"></script>
+	<script src="../src/binary64.js"></script>
+	<script src="../src/buffers-using-arrays.js"></script>
+	<script src="../src/int16.js"></script>
+	<script src="../src/int24.js"></script>
+	<script src="../src/int32.js"></script>
+	<script src="../src/int8.js"></script>
+	<script src="../src/interface.js"></script>
+	<script src="../src/pack-unpack.js"></script>
+	<script src="../src/safe-mode.js"></script>
+	<script src="../src/utf8-using-array.js"></script>
+	
+	<!-- Run the tests -->
+	<script>
+	    mocha.checkLeaks();
+	    mocha.globals([ 'script*' ]).run();
+	</script>
+
+</body>
+</html>

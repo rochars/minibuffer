@@ -1,34 +1,41 @@
 {
   "name": "minibuffer",
-  "version": "0.2.0",
-  "description": "A minimalist buffer reader and writer.",
+  "version": "0.3.0",
+  "description": "Binary data parser.",
   "homepage": "https://github.com/rochars/minibuffer",
   "author": "Rafael da Silva Rocha <rocha.rafaelsilva@gmail.com>",
   "license": "MIT",
-  "main": "./dist/minibuffer.cjs.js",
   "module": "./index.js",
-  "es2015": "./dist/minibuffer.js",
-  "jsdelivr": "./dist/minibuffer.min.js",
-  "unpkg": "./dist/minibuffer.min.js",
-  "types": "./index.d.ts",
+  "main": "./dist/minibuffer.umd.js",
   "engines": {
     "node": ">=8"
   },
   "keywords": [
+    "byte",
     "buffer",
-    "io",
-    "read",
-    "write",
+    "binary",
+    "parser",
+    "struct",
+    "pack",
+    "unpack",
+    "big-endian",
+    "little-endian",
+    "network order",
+    "integer",
+    "float",
+    "IEEE-754",
+    "half-precision",
+    "single-precision",
+    "double-precision",
+    "ASCII",
+    "UTF-8",
     "8-bit",
     "16-bit",
     "24-bit",
     "32-bit",
     "40-bit",
     "48-bit",
-    "64-bit",
-    "integer",
-    "floating-point",
-    "ASCII"
+    "64-bit"
   ],
   "repository": {
     "type": "git",
@@ -39,37 +46,42 @@
   },
   "directories": {
     "dist": "dist",
-    "externs": "externs"
+    "externs": "externs",
+    "lib": "lib",
+    "scripts": "scripts"
   },
   "files": [
     "dist",
     "externs",
+    "lib",
+    "scripts",
     "index.js",
     "index.d.ts",
     "LICENSE",
-    "README.md",
     "AUTHORS.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "README.md"
   ],
   "scripts": {
     "lint": "jshint index.js externs",
-    "test": "nyc ./node_modules/mocha/bin/_mocha test/api --recursive -R dot",
-    "test-esm": "node ./node_modules/mocha/bin/_mocha test/api --esm --recursive -R dot",
-    "test-min": "node ./node_modules/mocha/bin/_mocha test/api --min --recursive -R dot",
-    "test-cjs": "node ./node_modules/mocha/bin/_mocha test/api --cjs --recursive -R dot",
-    "test-tsc": "tsc ./test/TypeScript/index.ts",
-    "test-dist": "npm run test-min && npm run test-cjs && npm run test-esm",
-    "rollup-bundle": "rollup -c && npm run test-dist && npm run test-tsc",
-    "doc": "./node_modules/.bin/jsdoc index.js -d docs/api -t node_modules/docdash",
-    "build": "npm run lint && npm test && npm run rollup-bundle && npm run doc",
+    "test": "nyc ./node_modules/mocha/bin/_mocha test/src --recursive -R dot",
+    "test-esm": "node ./node_modules/mocha/bin/_mocha test/src --esm --recursive -R dot",
+    "test-min": "node ./node_modules/mocha/bin/_mocha test/src --esm --recursive -R dot",
+    "test-umd": "node ./node_modules/mocha/bin/_mocha test/src --umd --recursive -R dot",
+    "test-es3": "node ./node_modules/mocha/bin/_mocha test/src --es3 --recursive -R dot",
+    "test-tsc": "tsc ./test/dist/TypeScript/main.ts && node -r esm ./test/dist/TypeScript/main.js",
+    "test-dist": "npm run test-umd && npm run test-es3 && npm run test-esm && npm run test-min",
+    "pack": "npm run test && rollup -c && npm run test-dist && npm run test-tsc",
+    "doc": "./node_modules/.bin/jsdoc index.js -d docs -r README.md -t node_modules/docdash",
+    "build": "npm run lint && npm run pack && npm run doc",
     "coverage": "nyc report --reporter=lcov > coverage.lcov && codecov"
   },
   "devDependencies": {
-    "binary-data-types": "^0.1.0",
+    "binary-data-types": "0.1.0",
     "codecov": "^3.0.2",
     "docdash": "^0.4.0",
     "esm": "^3.0.51",
-    "google-closure-compiler-js": "^20180610.0.0",
+    "google-closure-compiler": "^20180610.0.2",
     "jsdoc": "^3.5.5",
     "jshint": "^2.9.5",
     "mocha": "^5.2.0",
@@ -79,9 +91,11 @@
     "rollup-plugin-closure-compiler-js": "^1.0.6",
     "rollup-plugin-commonjs": "^9.1.3",
     "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-terser": "^1.0.1",
+    "terser": "^3.8.1",
     "typescript": "^2.9.2"
   },
   "dependencies": {
-    "byte-data": "^14.0.1"
+    "byte-data": "^16.0.1"
   }
 }

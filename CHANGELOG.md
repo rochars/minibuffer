@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## version 0.3.0 (2018-08-06)
+- API updated to match the byte-data@16 API.
+
 ## version 0.2.0 (2018-07-16)
 - No UMD; lib distributed as a ES module, CJS module and browser script.
 - Add the clear() method to the MiniBuffer API; set the header to 0

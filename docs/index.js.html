@@ -1,4 +1,43 @@
-/*
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>index.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-minibuffer.html">minibuffer</a><ul class='methods'><li data-type='method'><a href="module-minibuffer.html#.pack">pack</a></li><li data-type='method'><a href="module-minibuffer.html#.packArray">packArray</a></li><li data-type='method'><a href="module-minibuffer.html#.packArrayTo">packArrayTo</a></li><li data-type='method'><a href="module-minibuffer.html#.packString">packString</a></li><li data-type='method'><a href="module-minibuffer.html#.packStringTo">packStringTo</a></li><li data-type='method'><a href="module-minibuffer.html#.packTo">packTo</a></li><li data-type='method'><a href="module-minibuffer.html#.unpack">unpack</a></li><li data-type='method'><a href="module-minibuffer.html#.unpackArray">unpackArray</a></li><li data-type='method'><a href="module-minibuffer.html#.unpackArrayTo">unpackArrayTo</a></li><li data-type='method'><a href="module-minibuffer.html#.unpackString">unpackString</a></li></ul></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">index.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*
  * Copyright (c) 2018 Rafael da Silva Rocha.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -33,7 +72,7 @@ import * as byteData from 'byte-data';
 
 /**
  * Read a string of UTF-8 characters from a byte buffer.
- * @param {!Uint8Array|!Array<number>} buffer A byte buffer.
+ * @param {!Uint8Array|!Array&lt;number>} buffer A byte buffer.
  * @param {number=} index The buffer index to start reading.
  * @param {number=} end The buffer index to stop reading, non inclusive.
  *   Assumes buffer length if undefined.
@@ -46,7 +85,7 @@ export function unpackString(buffer, index=0, end=buffer.length) {
 /**
  * Write a string of UTF-8 characters as a byte buffer.
  * @param {string} str The string to pack.
- * @return {!Array<number>} The UTF-8 string bytes.
+ * @return {!Array&lt;number>} The UTF-8 string bytes.
  */ 
 export function packString(str) {
   return byteData.packString(str);
@@ -55,7 +94,7 @@ export function packString(str) {
 /**
  * Write a string of UTF-8 characters to a byte buffer.
  * @param {string} str The string to pack.
- * @param {!Uint8Array|!Array<number>} buffer The output buffer.
+ * @param {!Uint8Array|!Array&lt;number>} buffer The output buffer.
  * @param {number=} index The buffer index to start writing.
  *   Assumes zero if undefined.
  * @return {number} The next index to write in the buffer.
@@ -69,7 +108,7 @@ export function packStringTo(str, buffer, index=0) {
  * Pack a number as a byte buffer.
  * @param {number} value The number.
  * @param {!Object} theType The type definition.
- * @return {!Array<number>} The packed value.
+ * @return {!Array&lt;number>} The packed value.
  * @throws {Error} If the type definition is not valid.
  * @throws {Error} If the value is not valid.
  */
@@ -81,7 +120,7 @@ export function pack(value, theType) {
  * Pack a number to a byte buffer.
  * @param {number} value The value.
  * @param {!Object} theType The type definition.
- * @param {!Uint8Array|!Array<number>} buffer The output buffer.
+ * @param {!Uint8Array|!Array&lt;number>} buffer The output buffer.
  * @param {number=} index The buffer index to write. Assumes 0 if undefined.
  * @return {number} The next index to write.
  * @throws {Error} If the type definition is not valid.
@@ -93,9 +132,9 @@ export function packTo(value, theType, buffer, index=0) {
 
 /**
  * Pack an array of numbers as a byte buffer.
- * @param {!Array<number>|!TypedArray} values The values.
+ * @param {!Array&lt;number>|!TypedArray} values The values.
  * @param {!Object} theType The type definition.
- * @return {!Array<number>} The packed values.
+ * @return {!Array&lt;number>} The packed values.
  * @throws {Error} If the type definition is not valid.
  * @throws {Error} If any of the values are not valid.
  */
@@ -105,9 +144,9 @@ export function packArray(values, theType) {
 
 /**
  * Pack a array of numbers to a byte buffer.
- * @param {!Array<number>|!TypedArray} values The value.
+ * @param {!Array&lt;number>|!TypedArray} values The value.
  * @param {!Object} theType The type definition.
- * @param {!Uint8Array|!Array<number>} buffer The output buffer.
+ * @param {!Uint8Array|!Array&lt;number>} buffer The output buffer.
  * @param {number=} index The buffer index to start writing.
  *   Assumes zero if undefined.
  * @return {number} The next index to write.
@@ -120,7 +159,7 @@ export function packArrayTo(values, theType, buffer, index=0) {
 
 /**
  * Unpack a number from a byte buffer.
- * @param {!Uint8Array|!Array<number>} buffer The byte buffer.
+ * @param {!Uint8Array|!Array&lt;number>} buffer The byte buffer.
  * @param {!Object} theType The type definition.
  * @param {number=} index The buffer index to read. Assumes zero if undefined.
  * @return {number}
@@ -134,7 +173,7 @@ export function unpack(buffer, theType, index=0) {
 
 /**
  * Unpack an array of numbers from a byte buffer.
- * @param {!Uint8Array|!Array<number>} buffer The byte buffer.
+ * @param {!Uint8Array|!Array&lt;number>} buffer The byte buffer.
  * @param {!Object} theType The type definition.
  * @param {number=} start The buffer index to start reading.
  *   Assumes zero if undefined.
@@ -144,7 +183,7 @@ export function unpack(buffer, theType, index=0) {
  *   the array are ignored and input buffers with insufficient bytes will
  *   output a empty array. If safe is set to true the function
  *   will throw a 'Bad buffer length' error. Defaults to false.
- * @return {!Array<number>}
+ * @return {!Array&lt;number>}
  * @throws {Error} If the type definition is not valid
  * @throws {Error} On overflow
  */
@@ -155,9 +194,9 @@ export function unpackArray(
 
 /**
  * Unpack a array of numbers to a typed array.
- * @param {!Uint8Array|!Array<number>} buffer The byte buffer.
+ * @param {!Uint8Array|!Array&lt;number>} buffer The byte buffer.
  * @param {!Object} theType The type definition.
- * @param {!TypedArray|!Array<number>} output The output array.
+ * @param {!TypedArray|!Array&lt;number>} output The output array.
  * @param {number=} start The buffer index to start reading.
  *   Assumes zero if undefined.
  * @param {number=} end The buffer index to stop reading.
@@ -173,3 +212,22 @@ export function unpackArrayTo(
     buffer, theType, output, start=0, end=buffer.length, safe=false) {
   byteData.unpackArrayTo(buffer, theType, output, start, end, safe);
 }
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Aug 06 2018 03:04:08 GMT-0300 (Hora oficial do Brasil) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

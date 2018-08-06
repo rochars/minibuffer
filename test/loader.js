@@ -1,44 +1,66 @@
 /*
  * Copyright (c) 2018 Rafael da Silva Rocha.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  */
 
 /**
- * @fileoverview minibuffer test loader.
+ * @fileoverview minibuffer test target loader.
  * @see https://github.com/rochars/minibuffer
  */
 
-/** @type {Object} */
 let minibuffer;
+let types = require("binary-data-types");
 
-// Browser
-if (process.argv[3] == '--min') {
-    console.log('browser tests');
-    global.window = global;
-    require('../dist/minibuffer.min.js');
-    minibuffer = window.MiniBuffer;
+// UMD min
+if (process.argv[3] == '--umd') {
+	console.log('umd tests');
+	minibuffer = require('../dist/minibuffer.umd.js');
+// UMD min, no Uint8Array available, es3 tag is misleading
+} else if (process.argv[3] == '--es3') {
+	console.log('es3 tests');
+	global.Uint8Array = undefined;
+	minibuffer = require('../dist/minibuffer.umd.js');
 
-// CommonJS
-} else if (process.argv[3] == '--cjs') {
-	console.log('cjs tests');
-	minibuffer = require('../dist/minibuffer.cjs.js');
-	minibufferDefault = require('../dist/minibuffer.cjs.js').default;
-	if (minibuffer != minibufferDefault) {
-		throw new Error('CommonJS dist should export as default and as .default.');
-	}
-
-// ESM
+// ES6
 } else if (process.argv[3] == '--esm') {
-	console.log('esm tests');
 	require = require("esm")(module);
 	global.module = module;
-	minibuffer = require('../dist/minibuffer.js').default;
+	console.log("esm");
+	minibuffer = require('../dist/minibuffer.js');
+
+// ES6 min
+} else if (process.argv[3] == '--min') {
+	require = require("esm")(module);
+	global.module = module;
+	console.log("min");
+	minibuffer = require('../dist/minibuffer.min.js');
 
 // Source
 } else {
-	console.log('Source tests');
 	require = require("esm")(module);
 	global.module = module;
-	minibuffer = require('../index.js').default;
+	console.log('Source tests');
+	minibuffer = require('../index.js');
 }
 
+minibuffer.types = types;
 module.exports = minibuffer;

@@ -49,7 +49,7 @@ Or load it from [unpkg](https://unpkg.com/minibuffer):
 ```
 
 ### Browser compatibility
-The UMD dist (**./dist/minibuffer.umd.js**) is transpiled to ES3 and compatible with IE6+. Should work in all modern browsers that support ES3/ES5/ES6+.
+Should work in all modern browsers that support ES5/ES6+.
 
 Cross-browser tests powered by  
 <a href="https://www.browserstack.com"><img src="https://rochars.github.io/minibuffer/docs/Browserstack-logo@2x.png" width="150px"/></a>
